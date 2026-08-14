@@ -11,6 +11,7 @@
   --color-alerte: #a13d2d;
   --color-alerte-fond: #fdf1ee;
   --color-calme: #2f6f4f;
+
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,10 +24,32 @@
     --color-alerte: #e08c78;
     --color-alerte-fond: #2a1b17;
     --color-calme: #7fbf9a;
+
   }
 }
 
 body {
   background: var(--color-fond);
   color: var(--color-encre);
+}
+
+/* Les couleurs du graphe vivent hors de `@theme` : Tailwind 4 élague les
+   variables de thème qu'aucune classe n'utilise, et celles-ci ne sont lues
+   qu'au vol par le canvas et par les pastilles de la légende. */
+:root {
+  --color-competence: #b8763a;
+  --color-agent: #2f6f4f;
+  --color-commande: #4a6fa5;
+  --color-etape: #8a7a5c;
+  --color-plugin: #7d4f8c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-competence: #e0a86a;
+    --color-agent: #7fbf9a;
+    --color-commande: #8fb0e0;
+    --color-etape: #c4b48c;
+    --color-plugin: #c193d4;
+  }
 }

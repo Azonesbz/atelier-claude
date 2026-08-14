@@ -148,8 +148,8 @@ function construire(
     cheminAbsolu,
     present,
     lignes: contenu ? contenu.split("\n").length : 0,
-    agents: resoudre(contenu, resolveur.agents),
-    competences: resoudre(contenu, resolveur.competences),
+    agents: referencesDans(contenu, resolveur.agents),
+    competences: referencesDans(contenu, resolveur.competences),
     arretDur: annonces.has(numero.padStart(2, "0")) || declareUnArretDur(role, contenu),
     silences: present
       ? []
@@ -167,7 +167,7 @@ function construire(
  * sans en être un — `Explore` et les autres agents intégrés, par exemple — n'est
  * pas signalé : l'annoncer comme introuvable serait un faux positif.
  */
-function resoudre(contenu: string | null, connus: string[]): string[] {
+export function referencesDans(contenu: string | null, connus: string[]): string[] {
   if (!contenu) return [];
   const index = new Set(connus);
   const trouves = new Set<string>();
