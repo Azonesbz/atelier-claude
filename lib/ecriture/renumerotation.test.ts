@@ -1,0 +1,151 @@
+/**
+ * La renumérotation, éprouvée sur le cas qui casse : un décalage en chaîne.
+ *
+ * Le test central est celui des renvois croisés. Remplacer 04→03 puis 03→02
+ * séquentiellement écraserait le premier remplacement ; il faut une seule passe.
+ */
+
+import assert from "node:assert/strict";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
+import { appliquerRenumerotation, planifierRenumerotation } from "./renumerotation.ts";
+import type { EtapeWorkflow, Workflow } from "../lecture/workflow.ts";
+
+/** Un workflow à trou : 00, 01, 03, 04 — l'étape 02 a été retirée. */
+function atelierATrou() {
+  const racine = mkdtempSync(join(tmpdir(), "renum-"));
+  process.env.CLAUDE_CONFIG_DIR = racine;
+  process.env.ATELIER_PROJET = racine;
+  const skill = join(racine, "skills", "essai");
+  mkdirSync(join(skill, "steps"), { recursive: true });
+
+  const numeros = ["00", "01", "03", "04"];
+  const noms: Record<string, string> = { "00": "init", "01": "plan", "03": "execute", "04": "verify" };
+
+  writeFileSync(
+    join(skill, "SKILL.md"),
+    [
+      "---", "name: essai", "description: Un essai.", "---", "",
+      "## Séquence", "",
+      "| # | Étape | Sortie |", "|---|---|---|",
+      ...numeros.map((n) => `| ${n} | \`steps/step-${n}-${noms[n]}.md\` | Rôle ${n} |`),
+      "", "## Arrêts durs", "",
+      "1. Le plan (étape 01) — attends.", "2. La vérif (étape 04) — attends aussi.", "",
+      "Commence par lire `steps/step-00-init.md`.", "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  // Chaque étape renvoie à la suivante, comme le fait halo.
+  const suivants: Record<string, string> = { "00": "01", "01": "03", "03": "04", "04": "" };
+  for (const n of numeros) {
+    const suite = suivants[n];
+    writeFileSync(
+      join(skill, "steps", `step-${n}-${noms[n]}.md`),
+      [
+        `# Étape ${n} — ${noms[n]}`, "",
+        `**Sortie attendue** : rôle ${n}.`, "",
+        suite ? `Enchaîne sur \`steps/step-${suite}-${noms[suite]}.md\` (voir step-${suite}).` : "Fin.",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+  }
+
+  const etapes: EtapeWorkflow[] = numeros.map((n) => ({
+    numero: n, role: `Rôle ${n}`, fichierDeclare: `steps/step-${n}-${noms[n]}.md`,
+    cheminAbsolu: join(skill, "steps", `step-${n}-${noms[n]}.md`),
+    present: true, lignes: 6, agents: [], competences: [], arretDur: false,
+    suivanteConfirmee: true, silences: [],
+  }));
+
+  const workflow: Workflow = { etapes, orphelins: [], depart: "00" };
+  return { skill: join(skill, "SKILL.md"), dossier: join(skill, "steps"), workflow };
+}
+
+test("le plan ne déplace que ce qui doit bouger", () => {
+  // Arrange
+  const { skill, workflow } = atelierATrou();
+
+  // Act
+  const plan = planifierRenumerotation(skill, workflow);
+
+  // Assert — 00 et 01 restent, 03→02 et 04→03
+  assert.deepEqual(
+    plan.deplacements.map((d) => `${d.ancienNumero}→${d.nouveauNumero}`),
+    ["03→02", "04→03"],
+  );
+});
+
+test("les fichiers sont renommés sans s'écraser en chemin", () => {
+  // Arrange
+  const { skill, dossier, workflow } = atelierATrou();
+
+  // Act
+  appliquerRenumerotation(skill, workflow);
+
+  // Assert
+  assert.ok(existsSync(join(dossier, "step-02-execute.md")));
+  assert.ok(existsSync(join(dossier, "step-03-verify.md")));
+  assert.equal(existsSync(join(dossier, "step-04-verify.md")), false);
+  assert.ok(existsSync(join(dossier, "step-00-init.md")), "les étapes stables ne bougent pas");
+});
+
+test("le tableau porte les nouveaux numéros ET les nouveaux chemins", () => {
+  // Arrange
+  const { skill, workflow } = atelierATrou();
+
+  // Act
+  appliquerRenumerotation(skill, workflow);
+
+  // Assert
+  const table = readFileSync(skill, "utf8");
+  assert.ok(table.includes("| 02 | `steps/step-02-execute.md` |"));
+  assert.ok(table.includes("| 03 | `steps/step-03-verify.md` |"));
+  assert.ok(!table.includes("step-04"));
+});
+
+test("les renvois d'une étape à l'autre suivent, sans double substitution", () => {
+  // Arrange — 01 renvoie à 03, qui devient 02 ; 03 renvoie à 04, qui devient 03
+  const { skill, dossier, workflow } = atelierATrou();
+
+  // Act
+  appliquerRenumerotation(skill, workflow);
+
+  // Assert
+  const plan = readFileSync(join(dossier, "step-01-plan.md"), "utf8");
+  assert.ok(plan.includes("`steps/step-02-execute.md`"), "01 pointe désormais vers 02");
+  assert.ok(plan.includes("(voir step-02)"));
+
+  const execute = readFileSync(join(dossier, "step-02-execute.md"), "utf8");
+  assert.ok(execute.startsWith("# Étape 02 — execute"), "son propre titre suit");
+  assert.ok(execute.includes("`steps/step-03-verify.md`"), "et son renvoi aussi");
+});
+
+test("les renvois en prose du SKILL.md suivent", () => {
+  // Arrange
+  const { skill, workflow } = atelierATrou();
+
+  // Act
+  appliquerRenumerotation(skill, workflow);
+
+  // Assert
+  const contenu = readFileSync(skill, "utf8");
+  assert.ok(contenu.includes("La vérif (étape 03)"), "l'arrêt dur annoncé suit le décalage");
+  assert.ok(contenu.includes("Le plan (étape 01)"), "et celui qui ne bouge pas reste");
+  assert.ok(contenu.includes("Commence par lire `steps/step-00-init.md`"), "le départ est intact");
+});
+
+test("une numérotation déjà continue est refusée plutôt que réécrite", () => {
+  // Arrange
+  const { skill, workflow } = atelierATrou();
+  appliquerRenumerotation(skill, workflow);
+  const apres = readFileSync(skill, "utf8");
+  workflow.etapes = workflow.etapes.map((e, i) => ({ ...e, numero: String(i).padStart(2, "0") }));
+
+  // Act & Assert
+  assert.throws(() => appliquerRenumerotation(skill, workflow), /déjà continue/);
+  assert.equal(readFileSync(skill, "utf8"), apres, "rien n'a été réécrit");
+});

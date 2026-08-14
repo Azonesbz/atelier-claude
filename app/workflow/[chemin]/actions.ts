@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { brancherAgent, creerAgent, debrancherAgent } from "@/lib/ecriture/agent";
 import { ajouterEtape, retirerEtape } from "@/lib/ecriture/etape";
+import {
+  appliquerRenumerotation,
+  planifierRenumerotation,
+  type PlanRenumerotation,
+} from "@/lib/ecriture/renumerotation";
 import type { Portee } from "@/lib/ecriture/garde";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
@@ -10,6 +15,8 @@ import { lireWorkflow } from "@/lib/lecture/workflow";
 export interface Retour {
   etat: "vierge" | "fait" | "refuse";
   message: string;
+  /** Le détail ligne à ligne, pour ce qui se montre avant de s'écrire. */
+  details?: string[];
 }
 
 /** Relit le workflow depuis le disque : l'état du formulaire ne fait pas foi. */
@@ -93,4 +100,51 @@ export async function retirer(_precedent: Retour, formulaire: FormData): Promise
       ? `Retirée. Le fichier est dans ${destination.split("/").slice(-2).join("/")}.`
       : "Ligne retirée du tableau. Le fichier était déjà absent.";
   });
+}
+
+/**
+ * L'aperçu et l'application sont deux actions, pas deux modes.
+ *
+ * Un bouton qui porte `formAction` ne peut pas porter de `name` : React s'en
+ * sert pour encoder l'action à appeler. Deux actions distinctes, donc — et ça
+ * se lit mieux : l'une montre, l'autre écrit.
+ */
+function rendre(plan: PlanRenumerotation, ecrit: boolean): Retour {
+  if (plan.deplacements.length === 0) {
+    return { etat: "fait", message: "La numérotation est déjà continue : rien à faire." };
+  }
+  const renommages = plan.deplacements.map((d) => `${d.ancienRelatif} → ${d.nouveauRelatif}`);
+  const lignes = plan.occurrences.map(
+    (o) => `${o.fichier.split("/").slice(-1)[0]}:${o.ligne}  ${o.avant.trim()}  →  ${o.apres.trim()}`,
+  );
+  return {
+    etat: "fait",
+    message: ecrit
+      ? `${plan.deplacements.length} étapes renumérotées, ${plan.occurrences.length} lignes réécrites.`
+      : `${plan.deplacements.length} étapes à renuméroter, ${plan.occurrences.length} lignes à réécrire. Rien n'est encore écrit.`,
+    details: [...renommages, ...lignes],
+  };
+}
+
+export async function apercuRenumerotation(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  const cheminSkill = String(formulaire.get("skill") ?? "");
+  try {
+    return rendre(planifierRenumerotation(cheminSkill, relire(cheminSkill)), false);
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
+}
+
+export async function appliquerRenumerotationAction(
+  _precedent: Retour,
+  formulaire: FormData,
+): Promise<Retour> {
+  const cheminSkill = String(formulaire.get("skill") ?? "");
+  try {
+    const plan = appliquerRenumerotation(cheminSkill, relire(cheminSkill));
+    revalidatePath("/", "layout");
+    return rendre(plan, true);
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
 }

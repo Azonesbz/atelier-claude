@@ -90,6 +90,7 @@ sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
 | --- | --- |
 | Ajouter une étape | le fichier d'étape **et** sa ligne dans le tableau — les deux, ou rien |
 | Retirer une étape | la ligne quitte le tableau, le fichier part dans `retirees/` |
+| Renuméroter la séquence | les fichiers, le tableau, les titres et **tous les renvois** |
 | Brancher un sous-agent | une puce dans la section `## Sous-agents` de l'étape |
 | Débrancher un sous-agent | la puce est retirée, et la section avec elle si elle se vide |
 | Créer un sous-agent | `agents/<nom>.md`, portée utilisateur ou projet |
@@ -107,6 +108,22 @@ l'outil le dit et n'écrit rien. Symétriquement, débrancher un agent nommé en
 pleine phrase — « délègue à `test-builder` », comme l'écrit `halo` — est
 **refusé** : le retirer voudrait dire réécrire une phrase, et ce n'est pas à un
 outil de le faire.
+
+**Renuméroter** referme les trous laissés par un retrait : 00, 01, 03, 04
+redevient 00, 01, 02, 03. C'est la transformation la plus large de l'outil, et
+la seule qui **se montre avant de s'écrire** — l'aperçu liste chaque renommage
+et chaque ligne réécrite, avec son avant et son après, et n'écrit rien.
+
+Elle touche quatre choses à la fois : le nom des fichiers, le numéro **et** le
+chemin dans le tableau, le titre `# Étape NN` de chaque fichier, et les renvois
+que les étapes se font entre elles — `halo` en compte des dizaines, sous trois
+formes (`steps/step-04-verify.md`, `step-04`, « étape 04 »).
+
+Deux pièges, tous deux traités : une substitution séquentielle 04→03 puis 03→02
+écraserait la première, donc tous les anciens jetons sont reconnus par **une
+seule expression** et remplacés d'un coup ; et renommer 04 en 03 écraserait le
+fichier 03 s'il n'avait pas encore bougé, donc les renommages passent par un
+nom provisoire.
 
 Retirer une étape **n'efface rien**. La ligne quitte le tableau et le fichier
 est déplacé dans un dossier `retirees/` voisin — hors du dossier d'étapes, donc
@@ -174,7 +191,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Quarante-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
+Cinquante-trois tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -184,7 +201,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 | --- | --- |
 | `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
 | `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
-| `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `frontmatter`, `competence`, `etape`, `agent` |
+| `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `frontmatter`, `competence`, `etape`, `agent`, `renumerotation` |
 | `app/` | L'interface : liste, détail modifiable, plan de workflow |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 

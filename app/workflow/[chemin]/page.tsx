@@ -27,6 +27,8 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
   const manquantes = workflow.etapes.filter((e) => !e.present).length;
   const arrets = workflow.etapes.filter((e) => e.arretDur).length;
   const refus = raisonDuRefus(competence.chemin);
+  // Un trou dans la numérotation : 00, 01, 03 — l'étape 02 a été retirée.
+  const numerotationATrou = workflow.etapes.some((e, i) => Number(e.numero) !== i);
 
   return (
     <main>
@@ -71,6 +73,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
         agentsDisponibles={[...new Set(atelier.agents.map((a) => a.nom))].sort()}
         modifiable={refus === ""}
         raisonDuRefus={refus}
+        numerotationATrou={numerotationATrou}
       />
 
       <p className="mt-6 font-mono text-[11px] text-attenue">

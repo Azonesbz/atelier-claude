@@ -1,7 +1,16 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ajouter, brancher, creer, debrancher, retirer, type Retour } from "./actions";
+import {
+  ajouter,
+  apercuRenumerotation,
+  appliquerRenumerotationAction,
+  brancher,
+  creer,
+  debrancher,
+  retirer,
+  type Retour,
+} from "./actions";
 
 const VIERGE: Retour = { etat: "vierge", message: "" };
 
@@ -20,12 +29,14 @@ export function AtelierWorkflow({
   agentsDisponibles,
   modifiable,
   raisonDuRefus,
+  numerotationATrou,
 }: {
   cheminSkill: string;
   etapes: EtapeBranchable[];
   agentsDisponibles: string[];
   modifiable: boolean;
   raisonDuRefus: string;
+  numerotationATrou: boolean;
 }) {
   if (!modifiable) {
     return (
@@ -41,6 +52,7 @@ export function AtelierWorkflow({
       <Branchement etapes={etapes} agents={agentsDisponibles} />
       <CreationAgent />
       <RetraitEtape cheminSkill={cheminSkill} etapes={etapes} />
+      {numerotationATrou && <Renumerotation cheminSkill={cheminSkill} />}
     </div>
   );
 }
@@ -128,6 +140,55 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
         <BoutonSecond enCours={enCours}>Retirer de la séquence</BoutonSecond>
         <Message retour={retour} />
       </form>
+    </Carte>
+  );
+}
+
+/**
+ * La seule action qui se montre avant de s'écrire.
+ *
+ * Elle touche le nom des fichiers, le tableau, les titres et tous les renvois
+ * croisés : personne ne devrait lancer ça sans avoir lu ce qui va changer.
+ * Deux formulaires plutôt qu'un à deux modes — un bouton porteur de
+ * `formAction` ne peut pas porter de `name`, React s'en sert lui-même.
+ */
+function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
+  const [apercu, voir, enCoursVoir] = useActionState(apercuRenumerotation, VIERGE);
+  const [ecriture, appliquer, enCoursEcrire] = useActionState(appliquerRenumerotationAction, VIERGE);
+  const dernier = ecriture.etat !== "vierge" ? ecriture : apercu;
+  const aMontrer = apercu.etat === "fait" && (apercu.details?.length ?? 0) > 0;
+  const dejaEcrit = ecriture.etat === "fait";
+
+  return (
+    <Carte
+      titre="Renuméroter la séquence"
+      aide="Referme les trous : 00, 01, 02, 04 devient 00, 01, 02, 03. Renomme les fichiers et suit tous les renvois."
+    >
+      <div className="space-y-2">
+        <form action={voir}>
+          <input type="hidden" name="skill" value={cheminSkill} />
+          <Bouton enCours={enCoursVoir}>Voir ce qui changerait</Bouton>
+        </form>
+
+        {dernier.details && (
+          <ul className="max-h-64 overflow-y-auto rounded border border-bord p-2 font-mono text-[10px] leading-relaxed text-attenue">
+            {dernier.details.map((ligne, i) => (
+              <li key={i} className="truncate" title={ligne}>
+                {ligne}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Message retour={dernier} />
+
+        {aMontrer && !dejaEcrit && (
+          <form action={appliquer}>
+            <input type="hidden" name="skill" value={cheminSkill} />
+            <BoutonSecond enCours={enCoursEcrire}>Appliquer la renumérotation</BoutonSecond>
+          </form>
+        )}
+      </div>
     </Carte>
   );
 }
