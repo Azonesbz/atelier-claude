@@ -63,6 +63,12 @@ de le remplacer.
 
 Aucune dépendance : `python3`, présent sur macOS. 29 ms par passage.
 
+**Où le message apparaît.** Le hook se déclenche aussi bien en mode `-p` qu'en
+session interactive — vérifié le 14 août 2026 par un hook-marqueur écrivant un
+fichier. Sa sortie alimente le contexte de session plutôt que le terminal : en
+session interactive, elle s'affiche en tête sous « SessionStart hook ». En
+mode `-p`, elle n'est pas imprimée, mais elle est bien transmise.
+
 ## Essayer sans rien installer
 
 ```bash
