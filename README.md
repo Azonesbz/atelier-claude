@@ -23,13 +23,21 @@ commande intégrée ne dit :
 | --- | --- |
 | Plugin déclaré, charge utile absente | `enabledPlugins` × `installed_plugins.json` × existence de `installPath` |
 | Plugin déclaré, aucune installation | déclaré actif, rien dans `installed_plugins.json` |
-| Compétence au nom différent du répertoire | `name` du frontmatter ≠ nom du dossier |
 | Agent ou commande sans description | le modèle n'a rien pour décider de s'en servir |
+| Frontmatter ni lisible en YAML ni en `clé: valeur` | l'élément est ignoré sans un mot |
 | Hook à la commande vide | déclaré, n'exécute rien |
 | Matcher au mauvais type | invalide le fichier de réglages **entier** |
 
-`disable-model-invocation: true` n'est **pas** compté comme un écart : c'est un
-choix. La liste l'affiche, sans le peindre en rouge.
+Deux choses ne sont **pas** comptées comme des écarts, chacune parce qu'un test
+contrôlé sur 2.1.227 l'a démenti :
+
+- `disable-model-invocation: true` — c'est un choix, pas une panne. La liste
+  l'affiche sans le peindre en rouge.
+- un `name` de frontmatter différent du nom de répertoire ou de fichier — un
+  répertoire `repertoire-aaa` portant `name: frontmatter-zzz` se présente sous
+  `frontmatter-zzz`, et un agent `fichier-bbb.md` portant
+  `name: frontmatter-yyy` sous `frontmatter-yyy`. C'est le `name` qui fait
+  l'identité, la divergence ne casse rien.
 
 ## Ce que ça modifie
 
@@ -117,4 +125,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
   « voici un écart certain », jamais « voici tout ».
 - **Seules les compétences sont modifiables.** Agents, commandes, hooks et
   permissions sont en lecture seule pour l'instant.
+- **La précédence n'est pas calculée.** Quand deux éléments de même nom
+  existent dans deux portées, l'un éclipse l'autre en silence. C'est le plus
+  gros écart encore non détecté, et le prochain à écrire.
 - **Le chemin du hook est en dur** dans le bloc ci-dessus. Outil interne.

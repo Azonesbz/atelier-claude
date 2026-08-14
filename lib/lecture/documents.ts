@@ -3,8 +3,10 @@
  *
  * Les deux se ressemblent tellement sur le disque qu'on les confond, mais ils
  * ne se déclenchent pas pareil : un agent est choisi par le modèle d'après sa
- * description, une commande est tapée par l'utilisateur. Le nom d'invocation
- * vient du nom de fichier, pas du champ `name` — c'est la source d'erreur.
+ * description, une commande est tapée par l'utilisateur.
+ *
+ * L'identité vient du champ `name` quand il est là, du nom de fichier sinon.
+ * Vérifié le 14 août 2026 sur 2.1.227 : c'est le `name` qui s'affiche.
  */
 
 import { basename, join } from "node:path";
@@ -63,14 +65,11 @@ function lireDossier(racine: string, sous: string, _portee: Portee, _origine: st
         detail: "Le fichier est là, mais rien ne permet de le présenter ni de le déclencher.",
       });
     }
-    const declare = texte(entete.name);
-    if (declare && declare !== nomFichier) {
-      silences.push({
-        cause: "nom différent du fichier",
-        detail: `Le champ name vaut « ${declare} », l'invocation se fait sur « ${nomFichier} ».`,
-      });
-    }
-    return { nom: nomFichier, entete, corps, chemin, silences };
+    // L'identité d'un agent est son champ `name`, pas le nom du fichier — test
+    // contrôlé du 14 août 2026 sur 2.1.227 : « fichier-bbb.md » portant
+    // `name: frontmatter-yyy` se présente sous « frontmatter-yyy ». Signaler la
+    // divergence comme une anomalie serait un faux positif.
+    return { nom: texte(entete.name) || nomFichier, entete, corps, chemin, silences };
   });
 }
 

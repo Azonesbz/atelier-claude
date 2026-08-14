@@ -38,8 +38,8 @@ function lireUne(dossier: string, portee: Portee, origine: string): Competence |
     origine,
     chemin,
     description,
-    invocableParLeModele: entete["disable-model-invocation"] !== true,
-    invocableParLUtilisateur: entete["user-invocable"] !== false,
+    invocableParLeModele: !vrai(entete["disable-model-invocation"]),
+    invocableParLUtilisateur: entete["user-invocable"] === undefined || vrai(entete["user-invocable"]),
     outilsAutorises: liste(entete["allowed-tools"]),
     indiceArgument: indice(entete["argument-hint"]),
     corps,
@@ -64,12 +64,10 @@ function silences(
     });
     return trouves;
   }
-  if (nomDeclare !== nomRepertoire) {
-    trouves.push({
-      cause: "nom différent du répertoire",
-      detail: `Le champ name vaut « ${nomDeclare} », le répertoire s'appelle « ${nomRepertoire} ».`,
-    });
-  }
+  // Un `name` différent du répertoire n'est PAS une anomalie. Test contrôlé du
+  // 14 août 2026 sur 2.1.227 : un répertoire « repertoire-aaa » portant
+  // `name: frontmatter-zzz` s'affiche sous « frontmatter-zzz ». La divergence
+  // est visible dans le détail, elle n'est pas peinte en rouge.
   if (!description) {
     trouves.push({
       cause: "aucune description",
@@ -87,6 +85,17 @@ function silences(
   // suffit à le dire. Le signaler ici reviendrait à crier au loup — le défaut
   // qui rend un inspecteur pire qu'aucun inspecteur.
   return trouves;
+}
+
+/**
+ * Le « vrai » de Claude Code : le booléen `true`, ou la chaîne `"true"`.
+ *
+ * Tout le reste vaut faux, y compris `yes`, `1` ou `oui`. La lecture souple
+ * ligne à ligne rend des chaînes là où YAML strict rendrait des booléens : les
+ * deux formes doivent donc être acceptées, et elles seules.
+ */
+function vrai(valeur: unknown): boolean {
+  return valeur === true || valeur === "true";
 }
 
 function texte(valeur: unknown): string {
