@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Etapes } from "@/components/Etapes";
+import { PlanWorkflow } from "@/components/PlanWorkflow";
 import { Pastille } from "@/components/primitives";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
@@ -37,7 +37,10 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
         </h1>
         <p className="mt-2 text-sm text-attenue">
           {workflow.etapes.length} étapes · {arrets} arrêt{arrets > 1 ? "s" : ""} dur
-          {arrets > 1 ? "s" : ""}
+          {arrets > 1 ? "s" : ""} ·{" "}
+          {workflow.depart
+            ? `entrée déclarée à l'étape ${workflow.depart}`
+            : "entrée non déclarée, la première du tableau fait foi"}
           {manquantes > 0 && (
             <span className="text-alerte"> · {manquantes} fichier(s) d&apos;étape absent(s)</span>
           )}
@@ -50,7 +53,12 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
         </Link>
       </header>
 
-      <Etapes etapes={workflow.etapes} />
+      <PlanWorkflow workflow={workflow} />
+
+      <p className="mt-3 font-mono text-[11px] text-attenue">
+        trait plein : l&apos;étape nomme elle-même la suivante · trait pointillé : ordre du
+        tableau seulement
+      </p>
 
       {workflow.orphelins.length > 0 && (
         <section className="mt-8">

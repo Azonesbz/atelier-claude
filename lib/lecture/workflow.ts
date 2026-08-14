@@ -84,6 +84,8 @@ export interface EtapeWorkflow {
   agents: string[];
   competences: string[];
   arretDur: boolean;
+  /** L'étape nomme elle-même la suivante : la transition est déclarée, pas déduite. */
+  suivanteConfirmee: boolean;
   silences: Silence[];
 }
 
@@ -91,6 +93,8 @@ export interface Workflow {
   etapes: EtapeWorkflow[];
   /** Fichiers présents dans le sous-dossier mais absents du tableau. */
   orphelins: string[];
+  /** Le fichier d'entrée, quand le SKILL.md en désigne un explicitement. */
+  depart: string | null;
 }
 
 export interface Resolveur {
@@ -123,7 +127,34 @@ export function lireWorkflow(cheminSkill: string, corps: string, resolveur: Reso
     .filter((e): e is EtapeWorkflow => e !== null);
 
   if (etapes.length === 0) return null;
-  return { etapes, orphelins: orphelins(racine, etapes) };
+  confirmerLesTransitions(etapes);
+  return { etapes, orphelins: orphelins(racine, etapes), depart: departDeclare(corps, etapes) };
+}
+
+/**
+ * Le point d'entrée, quand la compétence en désigne un.
+ *
+ * `halo` finit son SKILL.md par « Commence maintenant par lire et exécuter
+ * `steps/step-00-init.md` ». `lancer` ne dit rien : on retombe alors sur la
+ * première ligne du tableau, sans prétendre que c'était déclaré.
+ */
+function departDeclare(corps: string, etapes: EtapeWorkflow[]): string | null {
+  const cites = [...corps.matchAll(/`([^`]+\.md)`/g)].map((t) => t[1]);
+  const horsTableau = cites.filter(
+    (chemin) => !corps.includes(`| \`${chemin}\``) || corps.lastIndexOf(chemin) > corps.lastIndexOf("|"),
+  );
+  const dernier = horsTableau.at(-1);
+  const trouve = etapes.find((e) => e.fichierDeclare === dernier);
+  return trouve ? trouve.numero : null;
+}
+
+/** Une étape confirme la suivante si son texte nomme le fichier de celle-ci. */
+function confirmerLesTransitions(etapes: EtapeWorkflow[]): void {
+  for (let i = 0; i < etapes.length - 1; i++) {
+    const contenu = lireTexte(etapes[i].cheminAbsolu) ?? "";
+    const suivante = etapes[i + 1].fichierDeclare.replace(/^.*\//, "").replace(/\.md$/, "");
+    etapes[i].suivanteConfirmee = contenu.includes(suivante);
+  }
 }
 
 function construire(
@@ -151,6 +182,7 @@ function construire(
     agents: referencesDans(contenu, resolveur.agents),
     competences: referencesDans(contenu, resolveur.competences),
     arretDur: annonces.has(numero.padStart(2, "0")) || declareUnArretDur(role, contenu),
+    suivanteConfirmee: false,
     silences: present
       ? []
       : [{

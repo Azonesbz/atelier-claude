@@ -67,14 +67,26 @@ sont le plugin, `flow-pipeline` et `halo`.
 ## Les workflows
 
 Certaines compétences se déroulent en étapes numérotées : `halo` en a onze,
-`lancer` sept. La page workflow les affiche de haut en bas, avec pour chaque
-étape son fichier, son rôle, sa taille, les sous-agents auxquels elle délègue,
-et les arrêts durs.
+`lancer` sept. La page workflow en dresse le plan — des blocs enchaînés, et sur
+la droite ce que chaque étape appelle.
 
-Rien n'est inventé : le tableau `## Séquence` donne l'ordre, les fichiers du
-sous-dossier donnent le contenu. **Aucune arête n'est déduite** — un dossier
-`.claude` ne contient pas de graphe et Claude Code n'en exécute pas, donc la
-séquence reste linéaire à l'écran comme elle l'est dans le fichier.
+**Le nom de la compétence n'est pas un nœud.** C'est le titre de la page ; le
+point de départ est une étape, et la page dit laquelle. `halo` la déclare
+(« Commence maintenant par lire et exécuter `steps/step-00-init.md` ») ;
+`lancer` ne dit rien, et c'est alors la première ligne du tableau qui fait foi
+— la page le précise plutôt que de faire semblant.
+
+Le trait entre deux étapes distingue deux situations :
+
+| Trait | Ce que ça veut dire |
+| --- | --- |
+| plein | l'étape nomme elle-même la suivante dans son fichier |
+| pointillé | l'ordre vient du tableau, rien ne le confirme dans l'étape |
+
+Sur cette machine, `halo` confirme ses dix transitions, `lancer` aucune de ses
+six. Les positions sont calculées, jamais simulées : un plan qui bouge d'un
+rafraîchissement à l'autre est illisible. Un agent appelé par trois étapes
+apparaît une fois, avec trois liens.
 
 Le croisement tableau ↔ disque donne deux écarts de plus :
 
@@ -158,7 +170,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Vingt-cinq tests TypeScript, huit Python. Les cas les plus utiles sont des
+Trente-et-un tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -168,6 +180,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 | --- | --- |
 | `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `graphe`, `atelier` |
 | `components/graphe/` | Le réseau : `modele` (positions), `dessin` (canvas), `GrapheReseau` (interaction) |
+| `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
 | `lib/ecriture/` | Réécrire sans casser : `frontmatter`, `competence` |
 | `app/` | L'interface : liste, détail modifiable, vue workflow, réseau |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
