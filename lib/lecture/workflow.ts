@@ -199,7 +199,7 @@ function construire(
  * sans en être un — `Explore` et les autres agents intégrés, par exemple — n'est
  * pas signalé : l'annoncer comme introuvable serait un faux positif.
  */
-export function referencesDans(contenu: string | null, connus: string[]): string[] {
+function referencesDans(contenu: string | null, connus: string[]): string[] {
   if (!contenu) return [];
   const index = new Set(connus);
   const trouves = new Set<string>();

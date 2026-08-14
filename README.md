@@ -39,31 +39,6 @@ contrôlé sur 2.1.227 l'a démenti :
   `name: frontmatter-yyy` sous `frontmatter-yyy`. C'est le `name` qui fait
   l'identité, la divergence ne casse rien.
 
-## Le réseau
-
-`/graphe` — la vue à la Obsidian. Chaque fichier est un nœud, chaque référence
-une arête, force-directed sur canvas : on déplace les nœuds, on zoome à la
-molette, on filtre par sorte, on masque les isolés.
-
-Une arête existe quand un fichier **nomme** un autre et que ce nom correspond à
-quelque chose de réellement présent sur le disque :
-
-| Arête | Origine |
-| --- | --- |
-| `contient` | un plugin et les compétences, agents, commandes qu'il apporte |
-| `séquence` | une compétence et les étapes de son tableau |
-| `délègue` | une étape et les agents ou compétences qu'elle nomme |
-| `cite` | une compétence ou un agent qui en nomme un autre dans son corps |
-
-**Ce n'est pas un graphe d'exécution.** Claude Code n'exécute pas de graphe :
-ces arêtes disent qui parle de qui, pas qui appelle qui à l'exécution. Un nom
-qui ne résout aucun fichier ne produit aucune arête — les agents intégrés
-(`Explore`, `Plan`) n'en ont pas, et les signaler comme cassés serait faux.
-
-La taille d'un nœud suit son nombre de liens ; un liseré rouge marque ceux qui
-sont en écart. Sur cette machine : 116 nœuds, 86 arêtes, et les plus connectés
-sont le plugin, `flow-pipeline` et `halo`.
-
 ## Les workflows
 
 Certaines compétences se déroulent en étapes numérotées : `halo` en a onze,
@@ -170,7 +145,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Trente-et-un tests TypeScript, huit Python. Les cas les plus utiles sont des
+Vingt-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -178,11 +153,10 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
 | Chemin | Rôle |
 | --- | --- |
-| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `graphe`, `atelier` |
-| `components/graphe/` | Le réseau : `modele` (positions), `dessin` (canvas), `GrapheReseau` (interaction) |
+| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
 | `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
 | `lib/ecriture/` | Réécrire sans casser : `frontmatter`, `competence` |
-| `app/` | L'interface : liste, détail modifiable, vue workflow, réseau |
+| `app/` | L'interface : liste, détail modifiable, plan de workflow |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 
 ## Limites

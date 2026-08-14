@@ -12,12 +12,7 @@ export default function Accueil() {
   return (
     <main>
       <header className="mb-10">
-        <div className="flex items-baseline justify-between gap-4">
-          <h1 className="text-2xl font-semibold">Atelier Claude</h1>
-          <Link href="/graphe" className="text-sm underline underline-offset-2">
-            voir le réseau →
-          </Link>
-        </div>
+        <h1 className="text-2xl font-semibold">Atelier Claude</h1>
         <p className="mt-1 text-sm text-attenue">
           {atelier.racineUtilisateur}
           {atelier.racineProjet ? ` · ${atelier.racineProjet}` : " · aucun projet"}
