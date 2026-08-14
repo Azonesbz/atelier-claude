@@ -1,0 +1,74 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Etapes } from "@/components/Etapes";
+import { Pastille } from "@/components/primitives";
+import { lireAtelier } from "@/lib/lecture/atelier";
+import { lireWorkflow } from "@/lib/lecture/workflow";
+
+export const dynamic = "force-dynamic";
+
+export default async function VueWorkflow({ params }: { params: Promise<{ chemin: string }> }) {
+  const { chemin } = await params;
+  const cible = decodeURIComponent(chemin);
+
+  const atelier = lireAtelier();
+  const competence = atelier.competences.find((c) => c.chemin === cible);
+  if (!competence) notFound();
+
+  const workflow = lireWorkflow(competence.chemin, competence.corps, {
+    agents: atelier.agents.map((a) => a.nom),
+    competences: atelier.competences.map((c) => c.nom),
+  });
+  if (!workflow) notFound();
+
+  const manquantes = workflow.etapes.filter((e) => !e.present).length;
+  const arrets = workflow.etapes.filter((e) => e.arretDur).length;
+
+  return (
+    <main>
+      <Link href="/" className="text-sm text-attenue underline-offset-2 hover:underline">
+        ← toutes les compétences
+      </Link>
+
+      <header className="mt-4 mb-8">
+        <h1 className="flex flex-wrap items-baseline gap-3 text-2xl font-semibold">
+          {competence.nom}
+          <Pastille portee={competence.portee} origine={competence.origine} />
+        </h1>
+        <p className="mt-2 text-sm text-attenue">
+          {workflow.etapes.length} étapes · {arrets} arrêt{arrets > 1 ? "s" : ""} dur
+          {arrets > 1 ? "s" : ""}
+          {manquantes > 0 && (
+            <span className="text-alerte"> · {manquantes} fichier(s) d&apos;étape absent(s)</span>
+          )}
+        </p>
+        <Link
+          href={`/competence/${encodeURIComponent(competence.chemin)}`}
+          className="mt-1 inline-block text-sm underline underline-offset-2"
+        >
+          modifier la compétence
+        </Link>
+      </header>
+
+      <Etapes etapes={workflow.etapes} />
+
+      {workflow.orphelins.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-2 text-sm font-semibold tracking-wide uppercase">
+            Fichiers hors séquence
+          </h2>
+          <p className="mb-2 text-sm text-attenue">
+            Présents dans le dossier d&apos;étapes, absents du tableau : jamais lus.
+          </p>
+          <ul className="rounded-lg border border-bord bg-carte px-4">
+            {workflow.orphelins.map((chemin) => (
+              <li key={chemin} className="border-b border-bord py-2 font-mono text-xs last:border-0">
+                {chemin}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
+  );
+}

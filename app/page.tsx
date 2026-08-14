@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Ligne, Liste, Panneau, Pastille, Silences } from "@/components/primitives";
 import { lireAtelier } from "@/lib/lecture/atelier";
+import { aDesEtapes } from "@/lib/lecture/workflow";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,14 @@ export default function Accueil() {
                 {c.nom}
               </Link>
               <Pastille portee={c.portee} origine={c.origine} />
+              {aDesEtapes(c.corps) && (
+                <Link
+                  href={`/workflow/${encodeURIComponent(c.chemin)}`}
+                  className="rounded bg-calme/15 px-1.5 py-0.5 font-mono text-[11px] text-calme underline-offset-2 hover:underline"
+                >
+                  workflow
+                </Link>
+              )}
               {!c.invocableParLeModele && (
                 <span className="font-mono text-[11px] text-attenue">invisible du modèle</span>
               )}

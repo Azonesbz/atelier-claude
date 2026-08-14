@@ -39,6 +39,35 @@ contrôlé sur 2.1.227 l'a démenti :
   `name: frontmatter-yyy` sous `frontmatter-yyy`. C'est le `name` qui fait
   l'identité, la divergence ne casse rien.
 
+## Les workflows
+
+Certaines compétences se déroulent en étapes numérotées : `halo` en a onze,
+`lancer` sept. La page workflow les affiche de haut en bas, avec pour chaque
+étape son fichier, son rôle, sa taille, les sous-agents auxquels elle délègue,
+et les arrêts durs.
+
+Rien n'est inventé : le tableau `## Séquence` donne l'ordre, les fichiers du
+sous-dossier donnent le contenu. **Aucune arête n'est déduite** — un dossier
+`.claude` ne contient pas de graphe et Claude Code n'en exécute pas, donc la
+séquence reste linéaire à l'écran comme elle l'est dans le fichier.
+
+Le croisement tableau ↔ disque donne deux écarts de plus :
+
+| Écart | Conséquence |
+| --- | --- |
+| Étape déclarée, fichier absent | l'étape ne s'exécutera jamais |
+| Fichier présent, absent du tableau | il ne sera jamais lu |
+
+Les arrêts durs se lisent à trois endroits, parce que les compétences ne les
+déclarent pas toutes pareil : la cellule du tableau, les titres du fichier
+d'étape, et une section « arrêts durs » du `SKILL.md` qui énumère les numéros.
+Une mention en passant dans un corps ne compte pas — `halo/step-01` contient
+« arrêt dur » uniquement pour dire qu'il n'en a **pas**, et le compter en
+faisait deux là où `step-02` se déclare « le seul arrêt dur de HALO ».
+
+Seules les compétences qui utilisent un tableau d'étapes sont reconnues : deux
+sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
+
 ## Ce que ça modifie
 
 Les compétences de `~/.claude` et du projet : description, indice d'argument,
@@ -104,7 +133,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Quatorze tests TypeScript, huit Python. Les cas les plus utiles sont des
+Vingt-et-un tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -112,9 +141,9 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
 | Chemin | Rôle |
 | --- | --- |
-| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `atelier` |
+| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
 | `lib/ecriture/` | Réécrire sans casser : `frontmatter`, `competence` |
-| `app/` | L'interface : liste, puis détail modifiable par compétence |
+| `app/` | L'interface : liste, détail modifiable, vue workflow |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 
 ## Limites
