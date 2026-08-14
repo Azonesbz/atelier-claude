@@ -1,32 +1,57 @@
 @import "tailwindcss";
 
-/* Outil interne, lisible de nuit comme de jour : un seul jeu de variables,
-   redéfini sous le thème sombre. Rien d'autre — pas de design system ici. */
+/* Un seul jeu de variables, en clair par défaut, redéfini sous thème sombre.
+   Rien d'autre — pas de design system ici.
+
+   ATTENTION : les valeurs sombres NE DOIVENT PAS vivre dans un second bloc
+   `@theme`. Tailwind 4 aplatit tous les `@theme` d'un fichier, `@media`
+   comprise, et le dernier déclaré gagne : la palette claire n'était jamais
+   livrée et l'outil restait sombre en plein jour. Constaté le 15 août 2026 —
+   zéro occurrence de `prefers-color-scheme` dans la feuille servie. Le clair
+   reste donc dans `@theme` (c'est lui qui engendre les utilitaires), le sombre
+   passe par un `:root` ordinaire.
+
+   Les teintes atténuées et d'alerte ont été assombries en clair, éclaircies en
+   sombre : elles portent du texte de 11 px et ne passaient pas 4,5:1. */
 @theme {
   --color-fond: #fbfaf8;
   --color-carte: #ffffff;
   --color-bord: #e6e2db;
   --color-encre: #1c1a17;
-  --color-attenue: #6b655c;
-  --color-alerte: #a13d2d;
+  --color-attenue: #5d574e;
+  --color-alerte: #98392a;
   --color-alerte-fond: #fdf1ee;
-  --color-calme: #2f6f4f;
+  --color-calme: #275f43;
+}
+
+:root {
+  /* Fait suivre les éléments natifs — menus de <select>, barres de défilement,
+     champs — au lieu de les laisser en clair sur un fond sombre. */
+  color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root {
     --color-fond: #16150f;
     --color-carte: #1e1c17;
     --color-bord: #302c25;
     --color-encre: #f0ece4;
-    --color-attenue: #9b9488;
-    --color-alerte: #e08c78;
+    --color-attenue: #a9a294;
+    --color-alerte: #f0a08c;
     --color-alerte-fond: #2a1b17;
-    --color-calme: #7fbf9a;
+    --color-calme: #8fcfaa;
   }
 }
 
 body {
   background: var(--color-fond);
   color: var(--color-encre);
+}
+
+/* Un anneau de focus visible partout : l'outil se parcourt au clavier et les
+   champs natifs ne montraient rien. */
+:focus-visible {
+  outline: 2px solid var(--color-encre);
+  outline-offset: 2px;
+  border-radius: 2px;
 }

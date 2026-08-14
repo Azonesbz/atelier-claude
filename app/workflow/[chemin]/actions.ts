@@ -95,7 +95,9 @@ export async function debrancher(_precedent: Retour, formulaire: FormData): Prom
 export async function retirer(_precedent: Retour, formulaire: FormData): Promise<Retour> {
   return aboutir(() => {
     const cheminSkill = String(formulaire.get("skill") ?? "");
-    const destination = retirerEtape(cheminSkill, relire(cheminSkill), String(formulaire.get("numero") ?? ""));
+    const numero = String(formulaire.get("numero") ?? "");
+    if (!numero) throw new Error("Choisis d'abord l'étape à retirer.");
+    const destination = retirerEtape(cheminSkill, relire(cheminSkill), numero);
     return destination
       ? `Retirée. Le fichier est dans ${destination.split("/").slice(-2).join("/")}.`
       : "Ligne retirée du tableau. Le fichier était déjà absent.";

@@ -110,9 +110,9 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
           <Bouton enCours={enCours} formAction={brancherAction}>
             Brancher
           </Bouton>
-          <BoutonSecond enCours={enCoursDebranche} formAction={debrancherAction}>
+          <BoutonDestructif enCours={enCoursDebranche} formAction={debrancherAction}>
             Débrancher
-          </BoutonSecond>
+          </BoutonDestructif>
         </div>
         <Message retour={dernier} />
       </form>
@@ -129,7 +129,14 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
     >
       <form action={action} className="space-y-2">
         <input type="hidden" name="skill" value={cheminSkill} />
-        <select name="numero" className="w-full rounded border border-bord bg-carte p-2 text-sm">
+        <select
+          name="numero"
+          defaultValue=""
+          className="w-full rounded border border-bord bg-carte p-2 text-sm"
+        >
+          <option value="" disabled>
+            choisir l&apos;étape à retirer…
+          </option>
           {etapes.map((e) => (
             <option key={e.chemin} value={e.numero}>
               {e.numero} · {e.role}
@@ -137,7 +144,7 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
             </option>
           ))}
         </select>
-        <BoutonSecond enCours={enCours}>Retirer de la séquence</BoutonSecond>
+        <BoutonDestructif enCours={enCours}>Retirer de la séquence</BoutonDestructif>
         <Message retour={retour} />
       </form>
     </Carte>
@@ -167,7 +174,9 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
       <div className="space-y-2">
         <form action={voir}>
           <input type="hidden" name="skill" value={cheminSkill} />
-          <Bouton enCours={enCoursVoir}>Voir ce qui changerait</Bouton>
+          <Bouton enCours={enCoursVoir} libelleEnCours="Lecture…">
+            Voir ce qui changerait
+          </Bouton>
         </form>
 
         {dernier.details && (
@@ -239,9 +248,11 @@ interface ProprietesBouton {
   enCours: boolean;
   children: React.ReactNode;
   formAction?: (donnees: FormData) => void;
+  /** « Écriture… » par défaut ; « Lecture… » pour ce qui ne touche à rien. */
+  libelleEnCours?: string;
 }
 
-function Bouton({ enCours, children, formAction }: ProprietesBouton) {
+function Bouton({ enCours, children, formAction, libelleEnCours }: ProprietesBouton) {
   return (
     <button
       type="submit"
@@ -249,12 +260,29 @@ function Bouton({ enCours, children, formAction }: ProprietesBouton) {
       disabled={enCours}
       className="w-full rounded bg-encre px-3 py-1.5 text-sm font-medium text-fond disabled:opacity-40"
     >
+      {enCours ? (libelleEnCours ?? "Écriture…") : children}
+    </button>
+  );
+}
+
+/**
+ * Pour ce qui retire. Le rouge n'était jusqu'ici que la couleur des refus :
+ * il devient celle des gestes qui enlèvent, pour que la règle s'apprenne.
+ */
+function BoutonDestructif({ enCours, children, formAction }: ProprietesBouton) {
+  return (
+    <button
+      type="submit"
+      formAction={formAction}
+      disabled={enCours}
+      className="w-full rounded border border-alerte/50 px-3 py-1.5 text-sm text-alerte disabled:opacity-40"
+    >
       {enCours ? "Écriture…" : children}
     </button>
   );
 }
 
-/** Pour ce qui retire : même poids visuel qu'un lien, pas qu'une action première. */
+/** Pour ce qui est secondaire sans rien enlever. */
 function BoutonSecond({ enCours, children, formAction }: ProprietesBouton) {
   return (
     <button
@@ -271,6 +299,11 @@ function BoutonSecond({ enCours, children, formAction }: ProprietesBouton) {
 function Message({ retour }: { retour: Retour }) {
   if (retour.etat === "vierge") return null;
   return (
-    <p className={`text-xs ${retour.etat === "fait" ? "text-calme" : "text-alerte"}`}>{retour.message}</p>
+    <p
+      role={retour.etat === "refuse" ? "alert" : "status"}
+      className={`text-xs ${retour.etat === "fait" ? "text-calme" : "text-alerte"}`}
+    >
+      {retour.message}
+    </p>
   );
 }

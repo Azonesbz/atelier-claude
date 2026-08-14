@@ -1,156 +1,80 @@
-import Link from "next/link";
-import { Ligne, Liste, Panneau, Pastille, Silences } from "@/components/primitives";
+import { Inventaire } from "@/components/Inventaire";
+import { Veille } from "@/components/Veille";
 import { lireAtelier } from "@/lib/lecture/atelier";
+import { lireVeille } from "@/lib/lecture/veille";
 import { aDesEtapes } from "@/lib/lecture/workflow";
 
 export const dynamic = "force-dynamic";
 
 export default function Accueil() {
   const atelier = lireAtelier();
-  const ecarts = compterEcarts(atelier);
+  const veille = lireVeille();
+  const sansEffet = compterSansEffet(atelier);
+  const lus =
+    atelier.competences.length + atelier.agents.length + atelier.commandes.length +
+    atelier.hooks.length + atelier.plugins.length;
 
   return (
     <main>
-      <header className="mb-10">
+      <header className="mb-8">
         <h1 className="text-2xl font-semibold">Atelier Claude</h1>
-        <p className="mt-1 text-sm text-attenue">
-          {atelier.racineUtilisateur}
-          {atelier.racineProjet ? ` · ${atelier.racineProjet}` : " · aucun projet"}
+        <p className="mt-2 max-w-prose text-sm text-attenue">
+          Cette page lit ton dossier <code>.claude</code> et cherche une seule chose : ce qui est{" "}
+          <strong className="font-semibold text-encre">présent mais sans effet</strong> — un plugin
+          déclaré dont le code a disparu, un agent sans description, un en-tête que Claude Code
+          n&apos;arrive pas à lire. Rien n&apos;est deviné : chaque signalement vient d&apos;une
+          règle vérifiable, écrite en rouge sous la ligne concernée.
         </p>
-        <p className="mt-3 text-sm">
-          {ecarts === 0 ? (
+
+        <dl className="mt-4 grid gap-x-4 gap-y-1 font-mono text-[11px] sm:grid-cols-[auto_1fr]">
+          <dt className="text-attenue">Réglages personnels</dt>
+          <dd className="truncate">{atelier.racineUtilisateur}</dd>
+          <dt className="text-attenue">Projet lu</dt>
+          <dd className="truncate">
+            {atelier.racineProjet ?? (
+              <span className="text-alerte">
+                aucun — définis ATELIER_PROJET, ou lance l&apos;outil depuis ton projet
+              </span>
+            )}
+          </dd>
+        </dl>
+
+        <p className="mt-4 text-sm">
+          {lus === 0 ? (
+            <span className="text-alerte">
+              Rien n&apos;a été lu. Vérifie que {atelier.racineUtilisateur} existe.
+            </span>
+          ) : sansEffet === 0 ? (
             <span className="text-calme">
-              Tout ce qui est déclaré est présent sur le disque.
+              Tout ce qui est déclaré charge réellement. Les workflows se vérifient sur leur propre
+              page.
             </span>
           ) : (
             <span className="text-alerte">
-              {ecarts} élément{ecarts > 1 ? "s" : ""} présent{ecarts > 1 ? "s" : ""} mais sans effet, ou
-              nommé{ecarts > 1 ? "s" : ""} de travers.
+              {sansEffet} élément{sansEffet > 1 ? "s" : ""} présent{sansEffet > 1 ? "s" : ""} mais
+              sans effet — détail sous la ligne concernée.
             </span>
           )}
         </p>
       </header>
 
-      <Panneau titre="Compétences" compte={atelier.competences.length} ecarts={avecSilence(atelier.competences)}>
-        <Liste>
-          {atelier.competences.map((c) => (
-            <Ligne key={c.chemin}>
-              <Link href={`/competence/${encodeURIComponent(c.chemin)}`} className="font-medium underline-offset-2 hover:underline">
-                {c.nom}
-              </Link>
-              <Pastille portee={c.portee} origine={c.origine} />
-              {aDesEtapes(c.corps) && (
-                <Link
-                  href={`/workflow/${encodeURIComponent(c.chemin)}`}
-                  className="rounded bg-calme/15 px-1.5 py-0.5 font-mono text-[11px] text-calme underline-offset-2 hover:underline"
-                >
-                  workflow
-                </Link>
-              )}
-              {!c.invocableParLeModele && (
-                <span className="font-mono text-[11px] text-attenue">invisible du modèle</span>
-              )}
-              <span className="min-w-0 flex-1 truncate text-xs text-attenue">{c.description}</span>
-              <span className="font-mono text-[11px] text-attenue">{c.lignes} l.</span>
-              <div className="w-full"><Silences silences={c.silences} /></div>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
+      <Inventaire
+        atelier={atelier}
+        aDesEtapes={atelier.competences.filter((c) => aDesEtapes(c.corps)).map((c) => c.chemin)}
+      />
 
-      <Panneau titre="Plugins" compte={atelier.plugins.length} ecarts={avecSilence(atelier.plugins)}>
-        <Liste>
-          {atelier.plugins.map((p) => (
-            <Ligne key={p.identifiant + p.cheminInstallation}>
-              <span className="font-medium">{p.identifiant}</span>
-              <span className={`font-mono text-[11px] ${p.present ? "text-calme" : "text-alerte"}`}>
-                {p.present ? "présent" : "absent du disque"}
-              </span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-attenue">
-                {p.cheminInstallation}
-              </span>
-              <div className="w-full"><Silences silences={p.silences} /></div>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
-
-      <Panneau titre="Agents" compte={atelier.agents.length} ecarts={avecSilence(atelier.agents)}>
-        <Liste>
-          {atelier.agents.map((a) => (
-            <Ligne key={a.chemin}>
-              <span className="font-medium">{a.nom}</span>
-              <Pastille portee={a.portee} origine={a.origine} />
-              <span className="min-w-0 flex-1 truncate text-xs text-attenue">{a.description}</span>
-              <div className="w-full"><Silences silences={a.silences} /></div>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
-
-      <Panneau titre="Commandes" compte={atelier.commandes.length} ecarts={avecSilence(atelier.commandes)}>
-        <Liste>
-          {atelier.commandes.map((c) => (
-            <Ligne key={c.chemin}>
-              <span className="font-mono font-medium">/{c.nom}</span>
-              <Pastille portee={c.portee} origine={c.origine} />
-              <span className="min-w-0 flex-1 truncate text-xs text-attenue">{c.description}</span>
-              <div className="w-full"><Silences silences={c.silences} /></div>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
-
-      <Panneau titre="Hooks" compte={atelier.hooks.length} ecarts={avecSilence(atelier.hooks)}>
-        <Liste>
-          {atelier.hooks.map((h, i) => (
-            <Ligne key={i}>
-              <span className="font-medium">{h.evenement}</span>
-              <Pastille portee={h.portee} origine={h.origine} />
-              {h.matcher && <span className="font-mono text-[11px] text-attenue">{h.matcher}</span>}
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px]">{h.commande}</span>
-              <div className="w-full"><Silences silences={h.silences} /></div>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
-
-      <Panneau titre="Permissions" compte={atelier.permissions.length}>
-        <Liste>
-          {atelier.permissions.map((r, i) => (
-            <Ligne key={i}>
-              <span
-                className={`font-mono text-[11px] ${r.decision === "deny" ? "text-alerte" : "text-attenue"}`}
-              >
-                {r.decision}
-              </span>
-              <span className="min-w-0 flex-1 truncate font-mono text-xs">{r.motif}</span>
-              <Pastille portee={r.portee} origine={r.origine} />
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
-
-      <Panneau titre="Instructions" compte={atelier.instructions.length}>
-        <Liste>
-          {atelier.instructions.map((f) => (
-            <Ligne key={f.chemin}>
-              <span className="min-w-0 flex-1 truncate font-mono text-xs">{f.chemin}</span>
-              <Pastille portee={f.portee} origine={f.portee === "projet" ? "projet" : "~/.claude"} />
-              <span className="font-mono text-[11px] text-attenue">{f.lignes} l. · {f.octets} o.</span>
-            </Ligne>
-          ))}
-        </Liste>
-      </Panneau>
+      <Veille veille={veille} />
     </main>
   );
 }
 
-function avecSilence(liste: Array<{ silences: unknown[] }>): number {
-  return liste.filter((e) => e.silences.length > 0).length;
-}
-
-function compterEcarts(atelier: ReturnType<typeof lireAtelier>): number {
+/**
+ * Les éléments présents mais sans effet.
+ *
+ * Ne compte pas les étapes mortes d'un workflow : elles se lisent sur la page du
+ * plan, et le résumé le dit plutôt que de laisser croire qu'il a tout regardé.
+ */
+function compterSansEffet(atelier: ReturnType<typeof lireAtelier>): number {
   return [atelier.competences, atelier.agents, atelier.commandes, atelier.hooks, atelier.plugins]
     .flat()
     .filter((e) => e.silences.length > 0).length;

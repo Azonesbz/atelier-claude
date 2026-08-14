@@ -193,3 +193,31 @@ test("débrancher un agent qui n'est pas là ne fait rien", () => {
   assert.equal(resultat, "absent");
   assert.equal(readFileSync(etape, "utf8"), ETAPE);
 });
+
+test("débrancher n'emporte jamais la prose écrite sous la section", () => {
+  // Arrange — régression du 15 août 2026 : la section est la DERNIÈRE et porte
+  // du texte sous sa puce. Une version antérieure effaçait tout jusqu'au bout.
+  const racine = racineJetable();
+  const etape = join(racine, "skills", "x", "steps", "step-05.md");
+  mkdirSync(join(racine, "skills", "x", "steps"), { recursive: true });
+  writeFileSync(
+    etape,
+    [
+      "# Étape 05", "", "Du travail.", "",
+      "## Sous-agents", "", "- `relecteur`", "",
+      "Ces agents tournent en parallèle, sauf le dernier.",
+      "Ne jamais les lancer sur une branche sale.", "",
+    ].join("\n"),
+    "utf8",
+  );
+
+  // Act
+  debrancherAgent(etape, "relecteur");
+
+  // Assert
+  const contenu = readFileSync(etape, "utf8");
+  assert.ok(contenu.includes("branche sale"), "la prose de fin doit survivre");
+  assert.ok(contenu.includes("en parallèle"), "toute la prose, pas seulement la dernière ligne");
+  assert.ok(contenu.includes("## Sous-agents"), "la section n'est pas vide : elle reste");
+  assert.ok(!contenu.includes("- `relecteur`"), "seule la puce part");
+});

@@ -72,6 +72,15 @@ export interface Plugin {
   silences: Silence[];
 }
 
+/** Un plugin proposé par une marketplace mais jamais activé : il ne charge pas. */
+export interface PluginAuCatalogue {
+  identifiant: string;
+  marketplace: string;
+  competences: number;
+  agents: number;
+  commandes: number;
+}
+
 export interface FichierInstructions {
   chemin: string;
   portee: Portee;
@@ -89,5 +98,7 @@ export interface Atelier {
   hooks: Hook[];
   permissions: ReglePermission[];
   plugins: Plugin[];
+  /** Le catalogue non activé, tenu à l'écart des listes ci-dessus. */
+  catalogue: PluginAuCatalogue[];
   instructions: FichierInstructions[];
 }

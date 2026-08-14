@@ -145,13 +145,24 @@ function indexDeLaPuce(lignes: string[], debut: number, nom: string): number {
   return -1;
 }
 
-/** Retire le titre de section s'il ne reste plus aucune puce sous lui. */
+/**
+ * Retire le titre de section s'il ne reste plus rien du tout sous lui.
+ *
+ * ATTENTION — bug corrigé le 15 août 2026. Une première version ne cherchait
+ * qu'une puce restante : quand `## Sous-agents` était la dernière section et
+ * qu'elle portait de la prose sous les puces, débrancher emportait le titre
+ * ET tout le texte jusqu'à la fin du fichier. Deux lignes écrites à la main
+ * détruites sans un mot, par l'outil censé empêcher exactement ça.
+ *
+ * Une section n'est vide que si TOUT ce qui la suit, jusqu'au titre suivant ou
+ * jusqu'au bout, est blanc. La moindre ligne de texte la garde debout.
+ */
 function sansSectionVide(lignes: string[], debut: number): string {
   let fin = debut + 1;
   while (fin < lignes.length && !lignes[fin].startsWith("## ")) fin++;
 
-  const resteUnePuce = lignes.slice(debut + 1, fin).some((l) => l.startsWith("- "));
-  if (resteUnePuce) return lignes.join("\n");
+  const resteQuelqueChose = lignes.slice(debut + 1, fin).some((l) => l.trim() !== "");
+  if (resteQuelqueChose) return lignes.join("\n");
 
   lignes.splice(debut, fin - debut);
   return `${lignes.join("\n").trimEnd()}\n`;

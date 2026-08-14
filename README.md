@@ -8,7 +8,15 @@ npm install
 npm run dev
 ```
 
-http://localhost:4300
+http://localhost:4300 — le serveur n'écoute que sur `127.0.0.1`, et ce n'est
+pas un détail : aucune action n'est authentifiée, donc sur `0.0.0.0` n'importe
+qui sur le même réseau pourrait réécrire un `SKILL.md` de ton `~/.claude`,
+c'est-à-dire déposer des instructions que Claude Code exécuterait à la session
+suivante. Ne retire pas `--hostname` des scripts.
+
+Aucune configuration à faire : l'outil lit `~/.claude`, et remonte
+l'arborescence depuis le dossier de lancement pour trouver le `.claude` d'un
+projet. `CLAUDE_CONFIG_DIR` et `ATELIER_PROJET` permettent de viser ailleurs.
 
 ## Ce que ça montre
 
@@ -159,23 +167,10 @@ Le même écart de plugins, sans ouvrir l'interface. Un hook `SessionStart`
 déclaré dans `~/.claude/settings.json`, **hors de tout plugin** — un plugin mort
 ne charge pas ses propres hooks, donc ne peut pas signaler sa mort.
 
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /Users/vins/idea/projects/atelier-claude/hook.py",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+Le bloc exact, avec le chemin de **ta** machine, est affiché en bas de la page
+d'accueil — avec la mention de savoir s'il est déjà en place, et l'avertissement
+de fusionner plutôt que de remplacer si un autre outil occupe déjà
+`SessionStart`.
 
 29 ms par passage, aucune dépendance. Il se tait quand tout va bien. Sa sortie
 alimente le contexte de session : en session interactive elle s'affiche en tête,
@@ -191,7 +186,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Cinquante-trois tests TypeScript, huit Python. Les cas les plus utiles sont des
+Cinquante-neuf tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -216,4 +211,4 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 - **La précédence n'est pas calculée.** Quand deux éléments de même nom
   existent dans deux portées, l'un éclipse l'autre en silence. C'est le plus
   gros écart encore non détecté, et le prochain à écrire.
-- **Le chemin du hook est en dur** dans le bloc ci-dessus. Outil interne.
+
