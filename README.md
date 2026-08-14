@@ -1,44 +1,68 @@
 # Atelier Claude
 
-Prévient, au démarrage d'une session Claude Code, quand une extension déclarée
-active **ne chargera pas**. Le reste du temps, il se tait.
+Voir et modifier un dossier `.claude` sur une page. Interface locale, aucun
+compte, aucune base, rien qui sorte de la machine.
 
-## Pourquoi
+```bash
+npm install
+npm run dev
+```
 
-Le 14 juillet 2026, le plugin `dev-methodology@claude-config` a été installé et
-activé. Sa charge utile a ensuite disparu du disque. Du 16 juillet au 13 août,
-il est resté inscrit dans `enabledPlugins` **et** dans `installed_plugins.json`,
-sans jamais charger. Mesure sur 1 057 transcriptions : 1 seule sur 976 mentionne
-`dev-methodology:` avant le 14 août, contre 51 sur 81 depuis.
+http://localhost:4300
 
-Rien ne l'a signalé pendant un mois. Vérifié sur Claude Code 2.1.227, en
-configuration isolée :
+## Ce que ça montre
 
-| | cache absent | cache présent |
-| --- | --- | --- |
-| le plugin charge | **non** (0 compétence dans `/context`) | oui (16 entrées) |
-| avertissement sur stderr | **aucun** | aucun |
-| code de retour | 0 | 0 |
+Tout ce qui est chargé, avec sa provenance : compétences, agents, commandes,
+hooks, permissions, plugins, fichiers d'instructions. Chaque ligne porte sa
+portée — `~/.claude`, le projet, ou un plugin nommé.
 
-`claude doctor` ne regarde pas les plugins. `/doctor` exclut explicitement les
-erreurs de chargement et ne mesure que l'usage — devant un plugin mort, qui
-compte zéro invocation par construction, il aurait recommandé de le désactiver.
+Et surtout ce qui est **présent mais sans effet**, la seule chose qu'aucune
+commande intégrée ne dit :
 
-## Deux contraintes, découvertes par l'expérience
+| Écart | Règle de détection |
+| --- | --- |
+| Plugin déclaré, charge utile absente | `enabledPlugins` × `installed_plugins.json` × existence de `installPath` |
+| Plugin déclaré, aucune installation | déclaré actif, rien dans `installed_plugins.json` |
+| Compétence au nom différent du répertoire | `name` du frontmatter ≠ nom du dossier |
+| Agent ou commande sans description | le modèle n'a rien pour décider de s'en servir |
+| Hook à la commande vide | déclaré, n'exécute rien |
+| Matcher au mauvais type | invalide le fichier de réglages **entier** |
 
-**Le détecteur ne doit jamais appeler `claude plugin list`.** Cette commande
-repeuple `installPath` depuis le clone de la marketplace *avant* d'afficher son
-résultat : elle répare ce qu'elle prétend mesurer, puis annonce « enabled »
-sans un mot. C'est ainsi que la panne d'origine a été effacée en cours
-d'enquête. Ce projet lit le disque, directement.
+`disable-model-invocation: true` n'est **pas** compté comme un écart : c'est un
+choix. La liste l'affiche, sans le peindre en rouge.
 
-**Le détecteur ne peut pas vivre dans un plugin.** Un plugin mort ne charge pas
-ses propres hooks, donc ne peut pas signaler sa mort. Il faut se déclarer dans
-`~/.claude/settings.json`, à l'extérieur.
+## Ce que ça modifie
 
-## Installation
+Les compétences de `~/.claude` et du projet : description, indice d'argument,
+corps. Écriture par fichier temporaire puis renommage, pour qu'une session qui
+lit au même instant ne voie jamais un fichier à moitié écrit.
 
-Ajouter dans `~/.claude/settings.json` :
+Trois refus, dans cet ordre : hors des racines connues, hors d'un `SKILL.md`,
+**dans un plugin** — un plugin est un clone de dépôt, le modifier serait écrasé
+au prochain `claude plugin update`, sans avertissement.
+
+## La règle qui gouverne tout le code
+
+**Ne jamais re-sérialiser le YAML.** Le frontmatter est réécrit ligne à ligne :
+seules les clés modifiées bougent, le reste ressort octet pour octet.
+
+La raison est concrète. `~/.claude/skills/halo/SKILL.md` contient
+`argument-hint: [step] <demande en langage naturel>`, que YAML strict refuse —
+`[step]` est lu comme une séquence en flot, puis le texte qui suit surprend
+l'analyseur. Claude Code, lui, charge ce fichier sans broncher. Une première
+version de cet outil déclarait donc `halo` morte, à tort ; un test contrôlé sur
+2.1.227 (quatre compétences en configuration isolée) a montré que seul
+`disable-model-invocation: true` la retirait de la liste.
+
+**Un outil qui annonce une panne inexistante est pire que pas d'outil.** La
+lecture tente YAML strict, retombe sur une lecture ligne à ligne, et ne déclare
+illisible que si les deux échouent.
+
+## Le hook de veille
+
+Le même écart de plugins, sans ouvrir l'interface. Un hook `SessionStart`
+déclaré dans `~/.claude/settings.json`, **hors de tout plugin** — un plugin mort
+ne charge pas ses propres hooks, donc ne peut pas signaler sa mort.
 
 ```json
 {
@@ -58,60 +82,39 @@ Ajouter dans `~/.claude/settings.json` :
 }
 ```
 
-Si la clé `hooks` existe déjà, fusionner le tableau `SessionStart` plutôt que
-de le remplacer.
+29 ms par passage, aucune dépendance. Il se tait quand tout va bien. Sa sortie
+alimente le contexte de session : en session interactive elle s'affiche en tête,
+sous « SessionStart hook ».
 
-Aucune dépendance : `python3`, présent sur macOS. 29 ms par passage.
-
-**Où le message apparaît.** Le hook se déclenche aussi bien en mode `-p` qu'en
-session interactive — vérifié le 14 août 2026 par un hook-marqueur écrivant un
-fichier. Sa sortie alimente le contexte de session plutôt que le terminal : en
-session interactive, elle s'affiche en tête sous « SessionStart hook ». En
-mode `-p`, elle n'est pas imprimée, mais elle est bien transmise.
-
-## Essayer sans rien installer
-
-```bash
-python3 hook.py
-```
-
-Silence si tout va bien. Pour voir l'avertissement, reconstruire un état cassé
-dans un répertoire jetable — c'est ce que fait `test_bout_en_bout.py`.
+Il ne doit **jamais** appeler `claude plugin list` — cette commande repeuple
+`installPath` depuis le clone de la marketplace avant d'afficher, et répare donc
+ce qu'elle prétend mesurer.
 
 ## Tests
 
 ```bash
-python3 -m unittest discover -p 'test_*.py' -v
+npm test && npm run test:hook
 ```
 
-Huit tests. `test_ecart.py` couvre la règle sans toucher au disque ;
-`test_bout_en_bout.py` exécute le hook contre des configurations isolées, dont
-l'état cassé observé sur la machine.
-
-## Ce que ça ne fait pas
-
-- **Ça ne répare rien.** Le message nomme la commande de réparation ; c'est tout.
-- **Ça ne dit pas l'état effectif complet.** Une couche de réglages administrés
-  est délivrée à distance à la connexion, sans aucun fichier local, à quoi
-  s'ajoutent les arguments CLI, l'environnement et `--settings`. Un outil qui
-  lit le disque ne peut pas prétendre à l'exhaustivité. Il dit seulement :
-  « voici un écart certain ».
-- **Ça ne couvre que les plugins.** Les compétences, hooks, agents et serveurs
-  MCP ont leurs propres modes de panne muette, non traités ici.
+Quatorze tests TypeScript, huit Python. Les cas les plus utiles sont des
+régressions payées : la ligne de `halo` qui doit ressortir intacte après
+modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
 ## Structure
 
-| Fichier | Rôle |
+| Chemin | Rôle |
 | --- | --- |
-| `ecart.py` | La règle : soustraire le présent du déclaré. Aucun accès au disque. |
-| `lecture.py` | Lecture des trois fichiers de configuration. |
-| `message.py` | Le rendu, quatre lignes au maximum. |
-| `hook.py` | Le point d'entrée appelé par Claude Code. |
+| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `atelier` |
+| `lib/ecriture/` | Réécrire sans casser : `frontmatter`, `competence` |
+| `app/` | L'interface : liste, puis détail modifiable par compétence |
+| `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 
-## Limite connue
+## Limites
 
-Le trou exploité ici est un bug, et Anthropic referme activement cette classe
-de défauts : cinq des sept tickets recensés sont déjà fermés. Le précédent
-existe dans le produit — une règle de permission sans effet provoque déjà un
-avertissement spontané au démarrage. Le jour où ce mécanisme est étendu aux
-plugins, ce dépôt n'a plus de raison d'être. C'est le résultat souhaitable.
+- **L'état effectif complet n'est pas calculable depuis le disque.** Une couche
+  de réglages administrés est délivrée à distance à la connexion, à quoi
+  s'ajoutent les arguments CLI, l'environnement et `--settings`. L'outil dit
+  « voici un écart certain », jamais « voici tout ».
+- **Seules les compétences sont modifiables.** Agents, commandes, hooks et
+  permissions sont en lecture seule pour l'instant.
+- **Le chemin du hook est en dur** dans le bloc ci-dessus. Outil interne.

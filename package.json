@@ -1,0 +1,27 @@
+{
+  "name": "atelier-claude",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voir et modifier un dossier .claude sur une page",
+  "scripts": {
+    "dev": "next dev --port 4300",
+    "build": "next build",
+    "start": "next start --port 4300",
+    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts'",
+    "test:hook": "python3 -m unittest discover -p 'test_*.py' -v"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  }
+}
