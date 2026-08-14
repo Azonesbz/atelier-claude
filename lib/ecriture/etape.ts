@@ -7,7 +7,7 @@
  * second échoue.
  */
 
-import { unlinkSync } from "node:fs";
+import { mkdirSync, renameSync, unlinkSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { lireTexte } from "../lecture/fichiers.ts";
 import type { Workflow } from "../lecture/workflow.ts";
@@ -114,4 +114,56 @@ function avecLigneAjoutee(skill: string, numero: string, relatif: string, sortie
   const role = sortie.trim().replace(/\|/g, "\\|") || "À écrire";
   lignes.splice(derniere + 1, 0, `| ${numero} | \`${relatif}\` | ${role} |`);
   return lignes.join("\n");
+}
+
+const DOSSIER_RETIREES = "retirees";
+
+/**
+ * Retire une étape : la ligne quitte le tableau, le fichier quitte la séquence.
+ *
+ * Le fichier n'est pas effacé mais déplacé dans un dossier `retirees/` voisin.
+ * Un dossier `.claude` d'utilisateur n'est pas toujours sous Git — `halo` ne
+ * l'est pas — et un effacement y serait irrécupérable. `retirees/` n'est pas le
+ * dossier d'étapes : rien n'y est signalé comme orphelin.
+ *
+ * Rend le chemin où le fichier a été déplacé, ou null s'il n'existait pas.
+ */
+export function retirerEtape(cheminSkill: string, workflow: Workflow, numero: string): string | null {
+  const absolu = cheminModifiable(cheminSkill);
+  const etape = workflow.etapes.find((e) => e.numero === numero);
+  if (!etape) throw new EcritureRefusee(`Aucune étape ${numero} dans ce workflow.`);
+
+  const skill = lireTexte(absolu);
+  if (skill === null) throw new EcritureRefusee("Le SKILL.md est introuvable.");
+
+  const sansLigne = sansLaLigne(skill, etape.fichierDeclare);
+  if (sansLigne === skill) {
+    throw new EcritureRefusee(`La ligne de « ${etape.fichierDeclare} » est introuvable dans le tableau.`);
+  }
+
+  const destination = etape.present ? deplacerHorsSequence(absolu, etape.cheminAbsolu) : null;
+  try {
+    ecrireAtomiquement(absolu, sansLigne);
+  } catch (erreur) {
+    if (destination) renameSync(destination, etape.cheminAbsolu);
+    throw erreur;
+  }
+  return destination;
+}
+
+function sansLaLigne(skill: string, fichierDeclare: string): string {
+  const lignes = skill.split("\n");
+  const index = lignes.findIndex((l) => LIGNE_ETAPE.test(l) && l.includes(`\`${fichierDeclare}\``));
+  if (index === -1) return skill;
+  lignes.splice(index, 1);
+  return lignes.join("\n");
+}
+
+function deplacerHorsSequence(cheminSkill: string, cheminEtape: string): string {
+  cheminModifiable(cheminEtape);
+  const destination = join(dirname(cheminSkill), DOSSIER_RETIREES, basename(cheminEtape));
+  doitEtreLibre(destination);
+  mkdirSync(dirname(destination), { recursive: true });
+  renameSync(cheminEtape, destination);
+  return destination;
 }

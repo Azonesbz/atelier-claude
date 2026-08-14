@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { brancherAgent, creerAgent } from "./agent.ts";
+import { brancherAgent, creerAgent, debrancherAgent } from "./agent.ts";
 
 function racineJetable(): string {
   const racine = mkdtempSync(join(tmpdir(), "agent-"));
@@ -123,4 +123,73 @@ test("un agent déjà nommé dans la prose n'est pas ajouté une seconde fois", 
   // Assert
   assert.equal(resultat, "deja-present");
   assert.equal(readFileSync(etape, "utf8"), "Tests d'abord *(délègue à `test-builder`)*.\n");
+});
+
+test("débrancher retire la puce et la section devenue vide", () => {
+  // Arrange
+  const racine = racineJetable();
+  const etape = join(racine, "skills", "x", "steps", "step-05.md");
+  mkdirSync(join(racine, "skills", "x", "steps"), { recursive: true });
+  writeFileSync(etape, ETAPE, "utf8");
+  brancherAgent(etape, "test-runner");
+
+  // Act
+  const resultat = debrancherAgent(etape, "test-runner");
+
+  // Assert
+  const contenu = readFileSync(etape, "utf8");
+  assert.equal(resultat, "retire");
+  assert.ok(!contenu.includes("test-runner"));
+  assert.ok(!contenu.includes("## Sous-agents"), "une section vide ne reste pas");
+  assert.ok(contenu.includes("Une prose soignée que personne ne doit couper en deux."));
+});
+
+test("débrancher garde la section quand il reste un agent", () => {
+  // Arrange
+  const racine = racineJetable();
+  const etape = join(racine, "skills", "x", "steps", "step-05.md");
+  mkdirSync(join(racine, "skills", "x", "steps"), { recursive: true });
+  writeFileSync(etape, ETAPE, "utf8");
+  brancherAgent(etape, "test-runner");
+  brancherAgent(etape, "verifier");
+
+  // Act
+  debrancherAgent(etape, "test-runner");
+
+  // Assert
+  const contenu = readFileSync(etape, "utf8");
+  assert.ok(contenu.includes("## Sous-agents"));
+  assert.ok(contenu.includes("- `verifier`"));
+  assert.ok(!contenu.includes("test-runner"));
+});
+
+test("un agent nommé dans la prose n'est pas débranché en douce", () => {
+  // Arrange — le cas de halo : « délègue à `test-builder` » au milieu d'une phrase
+  const racine = racineJetable();
+  const etape = join(racine, "skills", "x", "steps", "step-05.md");
+  mkdirSync(join(racine, "skills", "x", "steps"), { recursive: true });
+  const original = "Tests d'abord *(délègue à `test-builder`)*.\n";
+  writeFileSync(etape, original, "utf8");
+
+  // Act
+  const resultat = debrancherAgent(etape, "test-builder");
+
+  // Assert
+  assert.equal(resultat, "dans-la-prose");
+  assert.equal(readFileSync(etape, "utf8"), original, "la phrase reste intacte");
+});
+
+test("débrancher un agent qui n'est pas là ne fait rien", () => {
+  // Arrange
+  const racine = racineJetable();
+  const etape = join(racine, "skills", "x", "steps", "step-05.md");
+  mkdirSync(join(racine, "skills", "x", "steps"), { recursive: true });
+  writeFileSync(etape, ETAPE, "utf8");
+
+  // Act
+  const resultat = debrancherAgent(etape, "inconnu");
+
+  // Assert
+  assert.equal(resultat, "absent");
+  assert.equal(readFileSync(etape, "utf8"), ETAPE);
 });

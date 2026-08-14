@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ajouter, brancher, creer, type Retour } from "./actions";
+import { ajouter, brancher, creer, debrancher, retirer, type Retour } from "./actions";
 
 const VIERGE: Retour = { etat: "vierge", message: "" };
 
@@ -40,6 +40,7 @@ export function AtelierWorkflow({
       <AjoutEtape cheminSkill={cheminSkill} />
       <Branchement etapes={etapes} agents={agentsDisponibles} />
       <CreationAgent />
+      <RetraitEtape cheminSkill={cheminSkill} etapes={etapes} />
     </div>
   );
 }
@@ -60,13 +61,18 @@ function AjoutEtape({ cheminSkill }: { cheminSkill: string }) {
 }
 
 function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: string[] }) {
-  const [retour, action, enCours] = useActionState(brancher, VIERGE);
+  const [retour, brancherAction, enCours] = useActionState(brancher, VIERGE);
+  const [retourDebranche, debrancherAction, enCoursDebranche] = useActionState(debrancher, VIERGE);
   const [choisie, setChoisie] = useState(etapes[0]?.chemin ?? "");
   const etape = etapes.find((e) => e.chemin === choisie);
+  const dernier = retourDebranche.etat !== "vierge" ? retourDebranche : retour;
 
   return (
-    <Carte titre="Brancher un sous-agent" aide="Ajouté à la section « Sous-agents » de l'étape. Ta prose n'est jamais touchée.">
-      <form action={action} className="space-y-2">
+    <Carte
+      titre="Brancher un sous-agent"
+      aide="Écrit dans la section « Sous-agents » de l'étape. Ta prose n'est jamais touchée, ni pour brancher ni pour retirer."
+    >
+      <form className="space-y-2">
         <select
           name="etape"
           value={choisie}
@@ -88,7 +94,38 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
             </option>
           ))}
         </select>
-        <Bouton enCours={enCours}>Brancher</Bouton>
+        <div className="grid grid-cols-2 gap-2">
+          <Bouton enCours={enCours} formAction={brancherAction}>
+            Brancher
+          </Bouton>
+          <BoutonSecond enCours={enCoursDebranche} formAction={debrancherAction}>
+            Débrancher
+          </BoutonSecond>
+        </div>
+        <Message retour={dernier} />
+      </form>
+    </Carte>
+  );
+}
+
+function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: EtapeBranchable[] }) {
+  const [retour, action, enCours] = useActionState(retirer, VIERGE);
+  return (
+    <Carte
+      titre="Retirer une étape"
+      aide="La ligne quitte le tableau et le fichier part dans retirees/, à côté. Rien n'est effacé."
+    >
+      <form action={action} className="space-y-2">
+        <input type="hidden" name="skill" value={cheminSkill} />
+        <select name="numero" className="w-full rounded border border-bord bg-carte p-2 text-sm">
+          {etapes.map((e) => (
+            <option key={e.chemin} value={e.numero}>
+              {e.numero} · {e.role}
+              {e.present ? "" : " (fichier déjà absent)"}
+            </option>
+          ))}
+        </select>
+        <BoutonSecond enCours={enCours}>Retirer de la séquence</BoutonSecond>
         <Message retour={retour} />
       </form>
     </Carte>
@@ -137,12 +174,33 @@ function Champ(proprietes: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...proprietes} className="w-full rounded border border-bord bg-carte p-2 text-sm" />;
 }
 
-function Bouton({ enCours, children }: { enCours: boolean; children: React.ReactNode }) {
+interface ProprietesBouton {
+  enCours: boolean;
+  children: React.ReactNode;
+  formAction?: (donnees: FormData) => void;
+}
+
+function Bouton({ enCours, children, formAction }: ProprietesBouton) {
   return (
     <button
       type="submit"
+      formAction={formAction}
       disabled={enCours}
       className="w-full rounded bg-encre px-3 py-1.5 text-sm font-medium text-fond disabled:opacity-40"
+    >
+      {enCours ? "Écriture…" : children}
+    </button>
+  );
+}
+
+/** Pour ce qui retire : même poids visuel qu'un lien, pas qu'une action première. */
+function BoutonSecond({ enCours, children, formAction }: ProprietesBouton) {
+  return (
+    <button
+      type="submit"
+      formAction={formAction}
+      disabled={enCours}
+      className="w-full rounded border border-bord px-3 py-1.5 text-sm text-attenue disabled:opacity-40"
     >
       {enCours ? "Écriture…" : children}
     </button>

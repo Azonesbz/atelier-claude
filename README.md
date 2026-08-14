@@ -89,7 +89,9 @@ sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
 | Geste | Ce qui est écrit |
 | --- | --- |
 | Ajouter une étape | le fichier d'étape **et** sa ligne dans le tableau — les deux, ou rien |
+| Retirer une étape | la ligne quitte le tableau, le fichier part dans `retirees/` |
 | Brancher un sous-agent | une puce dans la section `## Sous-agents` de l'étape |
+| Débrancher un sous-agent | la puce est retirée, et la section avec elle si elle se vide |
 | Créer un sous-agent | `agents/<nom>.md`, portée utilisateur ou projet |
 
 L'ajout d'une étape déduit la convention du workflow au lieu d'en imposer une :
@@ -101,7 +103,15 @@ détecter.
 Brancher **n'insère jamais de texte au milieu de la prose**. La section
 `## Sous-agents` est créée en fin de fichier au besoin, et c'est la seule que
 l'outil touche. Un agent déjà nommé ailleurs dans l'étape est déjà branché :
-l'outil le dit et n'écrit rien.
+l'outil le dit et n'écrit rien. Symétriquement, débrancher un agent nommé en
+pleine phrase — « délègue à `test-builder` », comme l'écrit `halo` — est
+**refusé** : le retirer voudrait dire réécrire une phrase, et ce n'est pas à un
+outil de le faire.
+
+Retirer une étape **n'efface rien**. La ligne quitte le tableau et le fichier
+est déplacé dans un dossier `retirees/` voisin — hors du dossier d'étapes, donc
+jamais signalé comme orphelin. Un `~/.claude` d'utilisateur n'est pas toujours
+sous Git : `halo` ne l'est pas, et un effacement y serait irrécupérable.
 
 Écriture par fichier temporaire puis renommage, pour qu'une session qui lit au
 même instant ne voie jamais un fichier à moitié écrit. Trois refus partagés par
@@ -164,7 +174,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Trente-neuf tests TypeScript, huit Python. Les cas les plus utiles sont des
+Quarante-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 

@@ -105,3 +105,54 @@ function derniereListe(lignes: string[], debut: number, fin: number): number {
   }
   return dernier;
 }
+
+export type Debranchement = "retire" | "dans-la-prose" | "absent";
+
+/**
+ * Retire un agent de la section `## Sous-agents` d'une étape.
+ *
+ * Trois issues, et une seule écrit. Si l'agent est nommé dans le corps plutôt
+ * que dans la section — c'est le cas de `halo`, qui écrit « délègue à
+ * `test-builder` » en toutes lettres —, on refuse : le retirer supposerait de
+ * réécrire une phrase, et ce n'est pas à un outil de le faire.
+ */
+export function debrancherAgent(cheminEtape: string, nomAgent: string): Debranchement {
+  const absolu = cheminModifiable(cheminEtape);
+  const nom = nomValide(nomAgent);
+
+  const contenu = lireTexte(absolu);
+  if (contenu === null) throw new EcritureRefusee("Ce fichier d'étape est introuvable.");
+
+  const lignes = contenu.split("\n");
+  const debut = lignes.findIndex((l) => l.startsWith(TITRE_SECTION));
+  const puce = indexDeLaPuce(lignes, debut, nom);
+
+  if (puce === -1) {
+    return contenu.includes(`\`${nom}\``) ? "dans-la-prose" : "absent";
+  }
+
+  lignes.splice(puce, 1);
+  ecrireAtomiquement(absolu, sansSectionVide(lignes, debut));
+  return "retire";
+}
+
+/** L'index de la puce visée, à l'intérieur de la section seulement. */
+function indexDeLaPuce(lignes: string[], debut: number, nom: string): number {
+  if (debut === -1) return -1;
+  for (let i = debut + 1; i < lignes.length && !lignes[i].startsWith("## "); i++) {
+    if (lignes[i].trim() === `- \`${nom}\``) return i;
+  }
+  return -1;
+}
+
+/** Retire le titre de section s'il ne reste plus aucune puce sous lui. */
+function sansSectionVide(lignes: string[], debut: number): string {
+  let fin = debut + 1;
+  while (fin < lignes.length && !lignes[fin].startsWith("## ")) fin++;
+
+  const resteUnePuce = lignes.slice(debut + 1, fin).some((l) => l.startsWith("- "));
+  if (resteUnePuce) return lignes.join("\n");
+
+  lignes.splice(debut, fin - debut);
+  return `${lignes.join("\n").trimEnd()}\n`;
+}

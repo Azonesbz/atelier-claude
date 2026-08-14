@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { ajouterEtape, conventionDe } from "./etape.ts";
+import { ajouterEtape, conventionDe, retirerEtape } from "./etape.ts";
 import type { EtapeWorkflow, Workflow } from "../lecture/workflow.ts";
 
 function etape(numero: string, fichier: string): EtapeWorkflow {
@@ -44,6 +44,7 @@ function atelierJetable(dossier: string, prefixe: string) {
     etapes: [etape("00", `${dossier}/${prefixe}-00-depart.md`), etape("01", `${dossier}/${prefixe}-01-suite.md`)],
     orphelins: [], depart: null,
   };
+  workflow.etapes.forEach((e) => { e.cheminAbsolu = join(skill, e.fichierDeclare); });
   return { racine, skill: join(skill, "SKILL.md"), workflow };
 }
 
@@ -105,4 +106,58 @@ test("un titre qui ne donne aucun nom de fichier est refusé", () => {
 
   // Act & Assert
   assert.throws(() => ajouterEtape(skill, workflow, { titre: "!!!", sortieAttendue: "x" }), /nom de fichier/i);
+});
+
+test("retirer une étape sort la ligne du tableau et le fichier de la séquence", () => {
+  // Arrange
+  const { racine, skill, workflow } = atelierJetable("etapes", "etape");
+  const fichier = join(racine, "skills", "essai", "etapes", "etape-01-suite.md");
+  writeFileSync(fichier, "# Étape 01\n", "utf8");
+  workflow.etapes[1].cheminAbsolu = fichier;
+
+  // Act
+  const destination = retirerEtape(skill, workflow, "01");
+
+  // Assert
+  assert.equal(existsSync(fichier), false, "le fichier quitte le dossier d'étapes");
+  assert.ok(destination?.endsWith("retirees/etape-01-suite.md"));
+  assert.ok(existsSync(destination), "il est déplacé, pas effacé");
+  const table = readFileSync(skill, "utf8");
+  assert.ok(!table.includes("etape-01-suite.md"));
+  assert.ok(table.includes("etape-00-depart.md"), "les autres lignes restent");
+});
+
+test("retirer laisse le reste du SKILL.md intact", () => {
+  // Arrange
+  const { racine, skill, workflow } = atelierJetable("etapes", "etape");
+  const fichier = join(racine, "skills", "essai", "etapes", "etape-01-suite.md");
+  writeFileSync(fichier, "# Étape 01\n", "utf8");
+  workflow.etapes[1].cheminAbsolu = fichier;
+
+  // Act
+  retirerEtape(skill, workflow, "01");
+
+  // Assert
+  assert.ok(readFileSync(skill, "utf8").includes("Du texte qui ne doit pas bouger."));
+});
+
+test("retirer une étape dont le fichier manque déjà nettoie seulement le tableau", () => {
+  // Arrange — l'étape 01 est déclarée mais absente du disque
+  const { skill, workflow } = atelierJetable("etapes", "etape");
+  workflow.etapes[1].present = false;
+
+  // Act
+  const destination = retirerEtape(skill, workflow, "01");
+
+  // Assert
+  assert.equal(destination, null);
+  assert.ok(!readFileSync(skill, "utf8").includes("etape-01-suite.md"));
+});
+
+test("retirer une étape inconnue est refusé", () => {
+  // Arrange
+  const { skill, workflow } = atelierJetable("etapes", "etape");
+
+  // Act & Assert
+  assert.throws(() => retirerEtape(skill, workflow, "99"), /Aucune étape 99/);
 });

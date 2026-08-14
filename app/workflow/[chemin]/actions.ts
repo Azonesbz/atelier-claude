@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { brancherAgent, creerAgent } from "@/lib/ecriture/agent";
-import { ajouterEtape } from "@/lib/ecriture/etape";
+import { brancherAgent, creerAgent, debrancherAgent } from "@/lib/ecriture/agent";
+import { ajouterEtape, retirerEtape } from "@/lib/ecriture/etape";
 import type { Portee } from "@/lib/ecriture/garde";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
@@ -67,5 +67,30 @@ export async function creer(_precedent: Retour, formulaire: FormData): Promise<R
       modele: String(formulaire.get("modele") ?? ""),
     });
     return `Agent créé : ${chemin}`;
+  });
+}
+
+export async function debrancher(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  return aboutir(() => {
+    const resultat = debrancherAgent(
+      String(formulaire.get("etape") ?? ""),
+      String(formulaire.get("agent") ?? ""),
+    );
+    if (resultat === "retire") return "Retiré de la section Sous-agents.";
+    if (resultat === "absent") return "Cet agent n'était pas branché sur cette étape.";
+    return (
+      "Nommé dans le corps de l'étape, pas dans la section Sous-agents. " +
+      "Le retirer voudrait dire réécrire une phrase — à faire à la main."
+    );
+  });
+}
+
+export async function retirer(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  return aboutir(() => {
+    const cheminSkill = String(formulaire.get("skill") ?? "");
+    const destination = retirerEtape(cheminSkill, relire(cheminSkill), String(formulaire.get("numero") ?? ""));
+    return destination
+      ? `Retirée. Le fichier est dans ${destination.split("/").slice(-2).join("/")}.`
+      : "Ligne retirée du tableau. Le fichier était déjà absent.";
   });
 }
