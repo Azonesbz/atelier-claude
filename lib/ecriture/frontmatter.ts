@@ -8,9 +8,11 @@
  * modifié doit ressortir identique, octet pour octet.
  */
 
-const DELIMITEUR = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n?)/;
+import { EcritureRefusee } from "./garde.ts";
 
-export class EcritureRefusee extends Error {}
+export { EcritureRefusee };
+
+const DELIMITEUR = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n?)/;
 
 /**
  * Remplace la valeur des clés données, en laissant le reste intact.

@@ -82,13 +82,32 @@ sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
 
 ## Ce que ça modifie
 
-Les compétences de `~/.claude` et du projet : description, indice d'argument,
-corps. Écriture par fichier temporaire puis renommage, pour qu'une session qui
-lit au même instant ne voie jamais un fichier à moitié écrit.
+**Les compétences** : description, indice d'argument, corps.
 
-Trois refus, dans cet ordre : hors des racines connues, hors d'un `SKILL.md`,
-**dans un plugin** — un plugin est un clone de dépôt, le modifier serait écrasé
-au prochain `claude plugin update`, sans avertissement.
+**Les workflows**, depuis la page de plan, trois gestes :
+
+| Geste | Ce qui est écrit |
+| --- | --- |
+| Ajouter une étape | le fichier d'étape **et** sa ligne dans le tableau — les deux, ou rien |
+| Brancher un sous-agent | une puce dans la section `## Sous-agents` de l'étape |
+| Créer un sous-agent | `agents/<nom>.md`, portée utilisateur ou projet |
+
+L'ajout d'une étape déduit la convention du workflow au lieu d'en imposer une :
+`halo` reçoit `steps/step-11-….md`, `lancer` reçoit `etapes/etape-07-….md`. Si
+la ligne du tableau ne peut pas être écrite, le fichier créé est retiré — un
+fichier sans ligne serait précisément l'orphelin que cet outil sert à
+détecter.
+
+Brancher **n'insère jamais de texte au milieu de la prose**. La section
+`## Sous-agents` est créée en fin de fichier au besoin, et c'est la seule que
+l'outil touche. Un agent déjà nommé ailleurs dans l'étape est déjà branché :
+l'outil le dit et n'écrit rien.
+
+Écriture par fichier temporaire puis renommage, pour qu'une session qui lit au
+même instant ne voie jamais un fichier à moitié écrit. Trois refus partagés par
+toutes les écritures, dans un seul module : hors des racines connues, **dans un
+plugin** — clone de dépôt, écrasé au prochain `claude plugin update` — et
+écrasement d'un fichier existant lors d'une création.
 
 ## La règle qui gouverne tout le code
 
@@ -145,7 +164,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Vingt-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
+Trente-neuf tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -155,7 +174,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 | --- | --- |
 | `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
 | `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
-| `lib/ecriture/` | Réécrire sans casser : `frontmatter`, `competence` |
+| `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `frontmatter`, `competence`, `etape`, `agent` |
 | `app/` | L'interface : liste, détail modifiable, plan de workflow |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 

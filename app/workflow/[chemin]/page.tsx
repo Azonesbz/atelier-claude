@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PlanWorkflow } from "@/components/PlanWorkflow";
+import { AtelierWorkflow } from "./Atelier";
 import { Pastille } from "@/components/primitives";
+import { verifierChemin } from "@/lib/ecriture/competence";
+import { EcritureRefusee } from "@/lib/ecriture/garde";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
 
@@ -23,6 +26,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
 
   const manquantes = workflow.etapes.filter((e) => !e.present).length;
   const arrets = workflow.etapes.filter((e) => e.arretDur).length;
+  const refus = raisonDuRefus(competence.chemin);
 
   return (
     <main>
@@ -55,7 +59,21 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
 
       <PlanWorkflow workflow={workflow} />
 
-      <p className="mt-3 font-mono text-[11px] text-attenue">
+      <AtelierWorkflow
+        cheminSkill={competence.chemin}
+        etapes={workflow.etapes.map((e) => ({
+          numero: e.numero,
+          role: e.role,
+          chemin: e.cheminAbsolu,
+          present: e.present,
+          agents: e.agents,
+        }))}
+        agentsDisponibles={[...new Set(atelier.agents.map((a) => a.nom))].sort()}
+        modifiable={refus === ""}
+        raisonDuRefus={refus}
+      />
+
+      <p className="mt-6 font-mono text-[11px] text-attenue">
         trait plein : l&apos;étape nomme elle-même la suivante · trait pointillé : ordre du
         tableau seulement
       </p>
@@ -79,4 +97,14 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
       )}
     </main>
   );
+}
+
+/** Chaîne vide si ce workflow est modifiable, sinon la raison, en clair. */
+function raisonDuRefus(cheminSkill: string): string {
+  try {
+    verifierChemin(cheminSkill);
+    return "";
+  } catch (erreur) {
+    return erreur instanceof EcritureRefusee ? erreur.message : "Non modifiable.";
+  }
 }
