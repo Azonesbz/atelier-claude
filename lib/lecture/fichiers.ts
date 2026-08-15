@@ -10,6 +10,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, parse } from "node:path";
 import { parse as parseYaml } from "yaml";
+import { lireChoix } from "./choix.ts";
 
 /** Le dossier .claude de l'utilisateur, isolable pour les tests. */
 export function racineUtilisateur(): string {
@@ -19,12 +20,24 @@ export function racineUtilisateur(): string {
 /**
  * Le dossier .claude du projet regardé, ou null s'il n'y en a pas.
  *
- * On remonte l'arborescence comme le fait Claude Code lui-même : le premier
- * `.claude` rencontré en montant gagne. Par défaut on part du répertoire
- * courant, ce qui rend l'outil utile sans rien configurer.
+ * Trois sources, dans cet ordre :
+ *
+ * 1. `ATELIER_PROJET` — un lancement explicite, et les tests. Il gagne, et
+ *    l'interface le dit plutôt que de laisser croire que le choix est ignoré.
+ * 2. le projet choisi dans l'interface, gardé d'une session à l'autre ;
+ * 3. la remontée d'arborescence depuis le dossier courant, comme le fait
+ *    Claude Code lui-même — ce qui rend l'outil utile sans rien configurer.
  */
 export function racineProjet(): string | null {
-  let courant = process.env.ATELIER_PROJET || process.cwd();
+  const impose = process.env.ATELIER_PROJET;
+  const choisi = impose || lireChoix();
+  let courant = choisi || process.cwd();
+
+  if (choisi) {
+    const direct = join(courant, ".claude");
+    return estDossier(direct) ? direct : null;
+  }
+
   const racineDuDisque = parse(courant).root;
 
   while (true) {

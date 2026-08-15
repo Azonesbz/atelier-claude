@@ -14,9 +14,27 @@ qui sur le même réseau pourrait réécrire un `SKILL.md` de ton `~/.claude`,
 c'est-à-dire déposer des instructions que Claude Code exécuterait à la session
 suivante. Ne retire pas `--hostname` des scripts.
 
-Aucune configuration à faire : l'outil lit `~/.claude`, et remonte
-l'arborescence depuis le dossier de lancement pour trouver le `.claude` d'un
-projet. `CLAUDE_CONFIG_DIR` et `ATELIER_PROJET` permettent de viser ailleurs.
+Aucune configuration à faire. L'outil lit `~/.claude`, et pour le projet il
+suit trois sources dans cet ordre :
+
+1. `ATELIER_PROJET`, si la variable est définie — un lancement explicite reste
+   explicite, et l'interface le dit au lieu d'ignorer le sélecteur en silence ;
+2. **le projet choisi dans l'interface**, gardé d'une session à l'autre ;
+3. la remontée d'arborescence depuis le dossier de lancement, comme le fait
+   Claude Code lui-même.
+
+Le sélecteur propose les projets où Claude Code a **réellement travaillé**. La
+liste ne vient pas du nom des dossiers de `~/.claude/projects/`, qui est
+ambigu — `-Users-vins-workspace-bpm-connect` se lit aussi bien
+`workspace/bpm/connect` que `workspace/bpm-connect`, et c'est la seconde qui
+est vraie. Elle vient du champ `cwd` des transcriptions, qui ne se devine pas.
+Seuls les dossiers portant un `.claude` sont proposés, le plus récent en tête.
+
+Le choix est un fichier `.atelier-choix.json` à côté de l'application, pas un
+cookie : les garde-fous d'écriture appellent la même résolution de racine, loin
+de toute requête, et doivent voir exactement ce que la page affiche.
+
+`CLAUDE_CONFIG_DIR` vise un autre dossier personnel.
 
 ## Ce que ça montre
 
@@ -202,7 +220,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Soixante-quatre tests TypeScript, huit Python. Les cas les plus utiles sont des
+Soixante-huit tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -210,7 +228,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
 | Chemin | Rôle |
 | --- | --- |
-| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
+| `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `projets`, `choix`, `veille`, `atelier` |
 | `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
 | `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `empreinte` (le lien montré/écrit), `frontmatter`, `competence`, `etape`, `agent`, `renumerotation` |
 | `app/` | L'interface : liste, détail modifiable, plan de workflow |

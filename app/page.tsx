@@ -1,6 +1,9 @@
+import { ChoixProjet } from "@/components/ChoixProjet";
 import { Inventaire } from "@/components/Inventaire";
 import { Veille } from "@/components/Veille";
 import { lireAtelier } from "@/lib/lecture/atelier";
+import { lireChoix } from "@/lib/lecture/choix";
+import { listerProjetsConnus } from "@/lib/lecture/projets";
 import { lireVeille } from "@/lib/lecture/veille";
 import { aDesEtapes } from "@/lib/lecture/workflow";
 
@@ -9,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default function Accueil() {
   const atelier = lireAtelier();
   const veille = lireVeille();
+  const projetsConnus = listerProjetsConnus();
   const sansEffet = compterSansEffet(atelier);
   const lus =
     atelier.competences.length + atelier.agents.length + atelier.commandes.length +
@@ -32,12 +36,16 @@ export default function Accueil() {
           <dt className="text-attenue">Projet lu</dt>
           <dd className="truncate">
             {atelier.racineProjet ?? (
-              <span className="text-alerte">
-                aucun — définis ATELIER_PROJET, ou lance l&apos;outil depuis ton projet
-              </span>
+              <span className="text-alerte">aucun — choisis-en un ci-dessous</span>
             )}
           </dd>
         </dl>
+
+        <ChoixProjet
+          connus={projetsConnus}
+          actuel={lireChoix()}
+          impose={process.env.ATELIER_PROJET ?? null}
+        />
 
         <p className="mt-4 text-sm">
           {lus === 0 ? (
