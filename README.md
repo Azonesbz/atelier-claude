@@ -114,6 +114,12 @@ Le croisement tableau ↔ disque donne deux écarts de plus :
 | Étape déclarée, fichier absent | l'étape ne s'exécutera jamais |
 | Fichier présent, absent du tableau | il ne sera jamais lu |
 
+**Au survol**, le plan éclaire le voisinage et estompe le reste. Survoler une
+étape montre ce qu'elle appelle ; survoler un sous-agent montre les étapes qui
+l'appellent — le « utilisé par », que la lecture des fichiers ne donne pas d'un
+coup d'œil. Le focus clavier déclenche la même chose : un plan qui ne se lit
+qu'à la souris ne se lit pas.
+
 Les arrêts durs se lisent à trois endroits, parce que les compétences ne les
 déclarent pas toutes pareil : la cellule du tableau, les titres du fichier
 d'étape, et une section « arrêts durs » du `SKILL.md` qui énumère les numéros.

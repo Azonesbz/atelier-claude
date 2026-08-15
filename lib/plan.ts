@@ -21,10 +21,14 @@ const MARGE_HAUT = 56;
 export type SorteSatellite = "agent" | "competence";
 
 export interface BlocEtape {
+  /** Identité stable, pour relier survol et arêtes. */
+  id: string;
   etape: EtapeWorkflow;
   x: number;
   y: number;
   depart: boolean;
+  /** Les satellites que cette étape appelle. */
+  appelle: string[];
 }
 
 export interface BlocSatellite {
@@ -33,6 +37,8 @@ export interface BlocSatellite {
   sorte: SorteSatellite;
   x: number;
   y: number;
+  /** Les étapes qui l'appellent — le « utilisé par » du survol. */
+  appelePar: string[];
 }
 
 export interface Lien {
@@ -41,6 +47,8 @@ export interface Lien {
   sorte: "sequence" | "appel";
   /** Faux quand l'ordre vient du tableau sans que l'étape nomme sa suivante. */
   confirme: boolean;
+  /** Les deux extrémités, pour estomper ce que le survol ne concerne pas. */
+  extremites: [string, string];
 }
 
 export interface Plan {
@@ -52,11 +60,16 @@ export interface Plan {
 }
 
 export function mettreEnPlan(workflow: Workflow): Plan {
-  const blocs = workflow.etapes.map((etape, index) => ({
+  const blocs: BlocEtape[] = workflow.etapes.map((etape, index) => ({
+    id: `etape:${etape.numero}:${etape.fichierDeclare}`,
     etape,
     x: 0,
     y: MARGE_HAUT + index * (BLOC.hauteur + ESPACE_VERTICAL),
     depart: workflow.depart ? etape.numero === workflow.depart : index === 0,
+    appelle: [
+      ...etape.agents.map((nom) => `agent:${nom}`),
+      ...etape.competences.map((nom) => `competence:${nom}`),
+    ],
   }));
 
   const satellites = placerSatellites(blocs);
@@ -87,13 +100,14 @@ function placerSatellites(blocs: BlocEtape[]): BlocSatellite[] {
     for (const nom of bloc.etape.competences) accumuler(hauteurs, `competence:${nom}`, "competence", nom, centre);
   }
 
-  const candidats = [...hauteurs.entries()]
+  const candidats: BlocSatellite[] = [...hauteurs.entries()]
     .map(([id, { sorte, nom, ys }]) => ({
       id,
       nom,
       sorte,
       x: COLONNE_SATELLITES,
       y: ys.reduce((a, b) => a + b, 0) / ys.length - SATELLITE.hauteur / 2,
+      appelePar: blocs.filter((b) => b.appelle.includes(id)).map((b) => b.id),
     }))
     .sort((a, b) => a.y - b.y);
 
@@ -125,6 +139,7 @@ function liensDeSequence(blocs: BlocEtape[]): Lien[] {
       vers: { x: BLOC.largeur / 2, y: blocs[i + 1].y },
       sorte: "sequence",
       confirme: blocs[i].etape.suivanteConfirmee,
+      extremites: [blocs[i].id, blocs[i + 1].id],
     });
   }
   return liens;
@@ -136,11 +151,7 @@ function liensDAppel(blocs: BlocEtape[], satellites: BlocSatellite[]): Lien[] {
 
   for (const bloc of blocs) {
     const depart = { x: BLOC.largeur, y: bloc.y + BLOC.hauteur / 2 };
-    const cibles = [
-      ...bloc.etape.agents.map((nom) => `agent:${nom}`),
-      ...bloc.etape.competences.map((nom) => `competence:${nom}`),
-    ];
-    for (const id of cibles) {
+    for (const id of bloc.appelle) {
       const satellite = parId.get(id);
       if (!satellite) continue;
       liens.push({
@@ -148,6 +159,7 @@ function liensDAppel(blocs: BlocEtape[], satellites: BlocSatellite[]): Lien[] {
         vers: { x: satellite.x, y: satellite.y + SATELLITE.hauteur / 2 },
         sorte: "appel",
         confirme: true,
+        extremites: [bloc.id, satellite.id],
       });
     }
   }

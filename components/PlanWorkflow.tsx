@@ -1,21 +1,49 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { BLOC, mettreEnPlan, SATELLITE, type Lien } from "@/lib/plan";
 import type { Workflow } from "@/lib/lecture/workflow";
 
 /**
- * Le plan en SVG. Une quinzaine de blocs porteurs de texte : le DOM suffit
- * largement, et le texte reste sélectionnable, cherchable, accessible.
+ * Le plan en SVG, avec mise en avant au survol.
+ *
+ * Survoler une étape éclaire ce qu'elle appelle ; survoler un sous-agent
+ * éclaire les étapes qui l'appellent — le « utilisé par », qu'aucune lecture
+ * du fichier ne donne d'un coup d'œil. Tout le reste s'estompe plutôt que de
+ * disparaître : on garde le contexte.
+ *
+ * Le focus déclenche la même chose que le survol. Un plan qui ne se lit qu'à
+ * la souris ne se lit pas au clavier, et les blocs sont déjà des cibles.
  */
+const ESTOMPE = 0.22;
+
 export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
-  const plan = mettreEnPlan(workflow);
+  const plan = useMemo(() => mettreEnPlan(workflow), [workflow]);
+  const [vise, setVise] = useState<string | null>(null);
+
+  /** Les identités à garder vives : la cible et son voisinage direct. */
+  const enAvant = useMemo(() => {
+    if (!vise) return null;
+    const bloc = plan.blocs.find((b) => b.id === vise);
+    if (bloc) return new Set([bloc.id, ...bloc.appelle]);
+    const satellite = plan.satellites.find((s) => s.id === vise);
+    if (satellite) return new Set([satellite.id, ...satellite.appelePar]);
+    return null;
+  }, [vise, plan]);
+
+  const vif = (id: string) => !enAvant || enAvant.has(id);
+  const vifLien = (lien: Lien) =>
+    !enAvant || (enAvant.has(lien.extremites[0]) && enAvant.has(lien.extremites[1]));
 
   return (
     <div className="overflow-x-auto rounded-lg border border-bord bg-carte p-4">
       <svg
         viewBox={`-16 0 ${plan.largeur + 32} ${plan.hauteur}`}
-        width={plan.largeur + 32}
-        className="h-auto max-w-full"
+        style={{ minWidth: plan.largeur + 32 }}
+        className="h-auto"
         role="img"
         aria-label={`Plan du workflow : ${plan.blocs.length} étapes`}
+        onMouseLeave={() => setVise(null)}
       >
         <defs>
           <marker id="pointe" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
@@ -24,11 +52,21 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
         </defs>
 
         {plan.liens.map((lien, i) => (
-          <Trait key={i} lien={lien} />
+          <Trait key={i} lien={lien} vif={vifLien(lien)} />
         ))}
 
-        {plan.blocs.map(({ etape, x, y, depart }) => (
-          <g key={etape.numero + etape.fichierDeclare}>
+        {plan.blocs.map(({ id, etape, x, y, depart, appelle }) => (
+          <g
+            key={id}
+            tabIndex={0}
+            role="listitem"
+            aria-label={`Étape ${etape.numero} — ${etape.role}${appelle.length ? `, appelle ${appelle.length} élément(s)` : ""}`}
+            opacity={vif(id) ? 1 : ESTOMPE}
+            className="cursor-default transition-opacity"
+            onMouseEnter={() => setVise(id)}
+            onFocus={() => setVise(id)}
+            onBlur={() => setVise(null)}
+          >
             {depart && (
               <text x={x + 10} y={y - 12} className="fill-calme font-mono text-[11px]">
                 ▸ point de départ
@@ -41,7 +79,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               height={BLOC.hauteur}
               rx={8}
               className={`fill-fond ${etape.present ? "stroke-bord" : "stroke-alerte"}`}
-              strokeWidth={depart ? 2 : 1}
+              strokeWidth={vise === id ? 2 : depart ? 2 : 1}
             />
             <text x={x + 14} y={y + 24} className="fill-attenue font-mono text-[13px]">
               {etape.numero}
@@ -53,7 +91,12 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               {etape.fichierDeclare} · {etape.present ? `${etape.lignes} l.` : "fichier absent"}
             </text>
             {etape.arretDur && (
-              <text x={x + BLOC.largeur - 14} y={y + 24} textAnchor="end" className="fill-alerte font-mono text-[11px]">
+              <text
+                x={x + BLOC.largeur - 14}
+                y={y + 24}
+                textAnchor="end"
+                className="fill-alerte font-mono text-[11px]"
+              >
                 arrêt dur
               </text>
             )}
@@ -61,14 +104,29 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
         ))}
 
         {plan.satellites.map((satellite) => (
-          <g key={satellite.id}>
+          <g
+            key={satellite.id}
+            tabIndex={0}
+            role="listitem"
+            aria-label={`${satellite.nom}, utilisé par ${satellite.appelePar.length} étape(s)`}
+            opacity={vif(satellite.id) ? 1 : ESTOMPE}
+            className="cursor-default transition-opacity"
+            onMouseEnter={() => setVise(satellite.id)}
+            onFocus={() => setVise(satellite.id)}
+            onBlur={() => setVise(null)}
+          >
             <rect
               x={satellite.x}
               y={satellite.y}
               width={SATELLITE.largeur}
               height={SATELLITE.hauteur}
               rx={16}
-              className={satellite.sorte === "agent" ? "fill-calme/15 stroke-calme/40" : "fill-attenue/10 stroke-attenue/40"}
+              strokeWidth={vise === satellite.id ? 2 : 1}
+              className={
+                satellite.sorte === "agent"
+                  ? "fill-calme/15 stroke-calme/40"
+                  : "fill-attenue/10 stroke-attenue/40"
+              }
             />
             <text
               x={satellite.x + 14}
@@ -77,6 +135,16 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
             >
               {satellite.sorte === "competence" ? `/${satellite.nom}` : satellite.nom}
             </text>
+            {vise === satellite.id && (
+              <text
+                x={satellite.x + SATELLITE.largeur + 10}
+                y={satellite.y + 21}
+                className="fill-attenue font-mono text-[11px]"
+              >
+                utilisé par {satellite.appelePar.length} étape
+                {satellite.appelePar.length > 1 ? "s" : ""}
+              </text>
+            )}
           </g>
         ))}
       </svg>
@@ -84,7 +152,9 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
   );
 }
 
-function Trait({ lien }: { lien: Lien }) {
+function Trait({ lien, vif }: { lien: Lien; vif: boolean }) {
+  const opacite = vif ? 1 : ESTOMPE;
+
   if (lien.sorte === "sequence") {
     return (
       <line
@@ -92,7 +162,8 @@ function Trait({ lien }: { lien: Lien }) {
         y1={lien.de.y}
         x2={lien.vers.x}
         y2={lien.vers.y}
-        className="stroke-attenue"
+        opacity={opacite}
+        className="stroke-attenue transition-opacity"
         strokeWidth={1.5}
         strokeDasharray={lien.confirme ? undefined : "4 4"}
         markerEnd="url(#pointe)"
@@ -104,8 +175,9 @@ function Trait({ lien }: { lien: Lien }) {
   return (
     <path
       d={`M${lien.de.x},${lien.de.y} C${lien.de.x + courbure},${lien.de.y} ${lien.vers.x - courbure},${lien.vers.y} ${lien.vers.x},${lien.vers.y}`}
-      className="stroke-bord"
-      strokeWidth={1}
+      opacity={opacite}
+      className="stroke-bord transition-opacity"
+      strokeWidth={vif ? 1.5 : 1}
       fill="none"
     />
   );
