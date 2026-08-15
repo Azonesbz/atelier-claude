@@ -29,7 +29,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
   const arrets = workflow.etapes.filter((e) => e.arretDur).length;
   const refus = (await ecritureOuverte())
     ? raisonDuRefus(competence.chemin)
-    : "L'écriture demande un abonnement actif — la lecture reste entière. Voir la page Licence.";
+    : "L'écriture demande la licence — la lecture reste entière. Voir la page Licence.";
   // Un trou dans la numérotation : 00, 01, 03 — l'étape 02 a été retirée.
   const numerotationATrou = workflow.etapes.some((e, i) => Number(e.numero) !== i);
 

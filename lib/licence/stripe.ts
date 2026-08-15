@@ -1,25 +1,22 @@
 /**
  * Stripe tient lieu de base de données.
  *
- * Le service n'a aucune table : ni utilisateurs, ni sessions, ni abonnements
- * recopiés. La seule question posée est « cet abonnement est-il actif ? », et
- * Stripe en est déjà la source de vérité. Doubler cette source, c'est
- * fabriquer deux vérités qui divergeront.
+ * Le service n'a aucune table : ni utilisateurs, ni sessions, ni paiements
+ * recopiés. La seule question posée est « ce client a-t-il payé, sans avoir été
+ * remboursé ? », et Stripe en est déjà la source de vérité. En doubler une
+ * seconde, ce serait fabriquer deux vérités qui divergeront.
  */
 
 import Stripe from "stripe";
 
-export interface EtatAbonnement {
-  actif: boolean;
-  /** Fin de la période payée, en ISO. Absente si aucun abonnement. */
-  jusquau: string | null;
-  /** `active`, `trialing`, `past_due`… — repris tel quel de Stripe. */
-  statut: string | null;
+export interface EtatPaiement {
+  /** Vrai si un paiement réussi et non remboursé existe. */
+  paye: boolean;
+  /** Date du paiement, en ISO. Sert à dire « acheté le… », rien de plus. */
+  le: string | null;
+  /** `rembourse` quand un achat a existé puis a été annulé. */
+  raison: "aucun-paiement" | "rembourse" | null;
 }
-
-/** Les statuts qui donnent droit à l'écriture. `past_due` reste ouvert : la */
-/** carte a échoué, la personne a payé jusqu'ici — on ne la coupe pas net. */
-const STATUTS_OUVERTS = new Set(["active", "trialing", "past_due"]);
 
 let client: Stripe | null = null;
 
@@ -30,33 +27,30 @@ export function stripe(): Stripe {
   return client;
 }
 
-export async function etatDeLAbonnement(identifiantClient: string): Promise<EtatAbonnement> {
-  const abonnements = await stripe().subscriptions.list({
-    customer: identifiantClient,
-    status: "all",
-    limit: 10,
-  });
+/**
+ * Un achat unique et définitif : la licence ne périme pas.
+ *
+ * Seul un remboursement la retire — c'est la contrepartie normale d'un
+ * paiement rendu, et la seule raison de dire non à quelqu'un qui a payé.
+ */
+export async function etatDuPaiement(identifiantClient: string): Promise<EtatPaiement> {
+  const charges = await stripe().charges.list({ customer: identifiantClient, limit: 20 });
 
-  const ouvert = abonnements.data.find((a) => STATUTS_OUVERTS.has(a.status));
-  if (!ouvert) {
-    const dernier = abonnements.data[0];
-    return { actif: false, jusquau: null, statut: dernier?.status ?? null };
+  const reussie = charges.data.find((c) => c.paid && c.status === "succeeded" && !c.refunded);
+  if (reussie) {
+    return { paye: true, le: new Date(reussie.created * 1000).toISOString(), raison: null };
   }
 
-  const fin = ouvert.items.data[0]?.current_period_end;
-  return {
-    actif: true,
-    jusquau: fin ? new Date(fin * 1000).toISOString() : null,
-    statut: ouvert.status,
-  };
+  const remboursee = charges.data.some((c) => c.refunded);
+  return { paye: false, le: null, raison: remboursee ? "rembourse" : "aucun-paiement" };
 }
 
 /**
  * L'adresse du service de licence.
  *
  * En local elle pointe vers le déploiement ; sur le déploiement lui-même, vers
- * soi. Sans elle, l'application locale considère qu'il n'y a pas de licence à
- * vérifier et reste en lecture seule — jamais l'inverse.
+ * soi. Sans elle, l'application locale considère qu'il n'y a rien à vérifier et
+ * reste en lecture seule — jamais l'inverse.
  */
 export function adresseDuService(): string | null {
   return process.env.NEXT_PUBLIC_ATELIER_SERVICE?.replace(/\/$/, "") ?? null;

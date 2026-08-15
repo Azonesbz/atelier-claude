@@ -25,8 +25,8 @@ export default async function Merci({
         <>
           <p className="mt-3 text-sm text-muted">
             Voici ta clé de licence. Colle-la dans l&apos;application, page « Licence ». Elle est
-            liée à ton abonnement : elle cesse de fonctionner si tu l&apos;arrêtes, et se
-            retrouve toujours en repassant par ce lien.
+            liée à ton achat, elle ne périme pas, et se retrouve toujours en repassant
+            par ce lien.
           </p>
           <pre className="card mt-4 overflow-x-auto p-4 font-mono text-sm select-all">{cle}</pre>
         </>

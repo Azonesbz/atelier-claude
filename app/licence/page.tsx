@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const RESUME: Record<string, { titre: string; detail: string; alerte: boolean }> = {
   absente: {
     titre: "Lecture seule",
-    detail: "Aucune clé enregistrée. Tout se lit ; l'écriture demande un abonnement.",
+    detail: "Aucune clé enregistrée. Tout se lit ; l'écriture demande la licence.",
     alerte: false,
   },
   active: { titre: "Écriture ouverte", detail: "Abonnement actif.", alerte: false },
@@ -29,7 +29,7 @@ export default async function Licence() {
       <h1 className="font-display text-3xl">Licence</h1>
       <p className="mt-2 max-w-prose text-sm text-muted">
         Lire ton dossier <code>.claude</code> est gratuit et le restera : le diagnostic est ce
-        qu&apos;on donne. Modifier depuis l&apos;interface demande un abonnement.
+        qu&apos;on donne. Modifier depuis l&apos;interface demande la licence, achetée une fois.
       </p>
 
       <section className="card mt-6 p-5">
@@ -40,7 +40,7 @@ export default async function Licence() {
         <p className="mt-1 text-sm text-muted">
           {etat.etat === "refusee" ? etat.raison : resume.detail}
           {etat.etat === "active" && etat.jusquau
-            ? ` Payé jusqu'au ${new Date(etat.jusquau).toLocaleDateString("fr-FR")}.`
+            ? ` Achetée le ${new Date(etat.jusquau).toLocaleDateString("fr-FR")}.`
             : ""}
         </p>
 
@@ -50,13 +50,13 @@ export default async function Licence() {
       <p className="mt-4 text-xs text-muted">
         {service ? (
           <>
-            Pas encore d&apos;abonnement ?{" "}
+            Pas encore de licence ?{" "}
             <a href={`${service}/tarif`} className="underline underline-offset-4">
               voir l&apos;offre
             </a>
             . L&apos;application tourne sur ta machine : rien de ton dossier
             <code> .claude</code> n&apos;est envoyé au service, qui ne sait qu&apos;une chose —
-            si ton abonnement est actif.
+            si ton achat existe.
           </>
         ) : (
           <>

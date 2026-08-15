@@ -16,7 +16,7 @@ export default async function Detail({ params }: { params: Promise<{ chemin: str
 
   const refus = (await ecritureOuverte())
     ? raisonDuRefus(cible)
-    : "L'écriture demande un abonnement actif — la lecture reste entière. Voir la page Licence.";
+    : "L'écriture demande la licence — la lecture reste entière. Voir la page Licence.";
 
   return (
     <main>

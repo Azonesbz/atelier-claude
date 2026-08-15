@@ -19,7 +19,8 @@ export async function POST() {
 
   try {
     const session = await stripe().checkout.sessions.create({
-      mode: "subscription",
+      // Achat unique : la licence est perpétuelle, mises à jour comprises.
+      mode: "payment",
       line_items: [{ price: tarif, quantity: 1 }],
       success_url: `${base}/merci?session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/tarif`,

@@ -56,14 +56,19 @@ L'application tourne sur **ta** machine et lit **ton** disque. Un serveur ne
 peut pas atteindre le `.claude` d'un client : il n'y a donc pas de compte, pas
 de session, pas de mot de passe. Une **clé de licence** ouvre l'écriture.
 
+**Un achat, une fois, mises à jour comprises à vie.** Pas d'abonnement : le
+produit n'a aucun coût récurrent — il tourne chez toi — et l'usage est
+épisodique. Une licence ne périme donc jamais : une fois vérifiée, elle vaut
+hors ligne, indéfiniment. Seul un remboursement la retire.
+
 | Ce que ça fait | Ce qu'il faut |
 | --- | --- |
 | Tout lire — inventaire, écarts, plans de workflow, veille | rien |
-| Modifier une compétence, une étape, un sous-agent | un abonnement actif |
+| Modifier une compétence, une étape, un sous-agent | une licence |
 
 **La clé est un identifiant client Stripe signé.** Pas de base de données : la
-seule question posée est « cet abonnement est-il actif ? », et Stripe en est
-déjà la source de vérité. En doubler une seconde, ce serait fabriquer deux
+seule question posée est « ce client a-t-il payé, sans être remboursé ? », et
+Stripe en est déjà la source de vérité. En doubler une seconde, ce serait fabriquer deux
 vérités qui divergeront. La signature HMAC empêche de fabriquer une clé ou de
 transformer la sienne en celle d'un autre ; la comparaison est à temps
 constant.
@@ -75,12 +80,16 @@ grisé n'empêche personne d'appeler l'action. Sept écritures, sept vérificati
 Aucun contenu de ton dossier `.claude` ne lui parvient — il ne reçoit qu'une
 clé et répond oui ou non.
 
-**La limite, dite franchement** : une application qui tourne sur la machine de
-son utilisateur peut être modifiée par lui. La licence est un rituel de
-paiement honnête, pas un verrou infranchissable. Le cache est d'ailleurs
-volontairement tolérant — quatorze jours hors ligne avant de refermer
-l'écriture, parce que couper quelqu'un qui a payé parce que son wifi est tombé
-serait absurde.
+**Deux limites, dites franchement.** Une application qui tourne sur la machine
+de son utilisateur peut être modifiée par lui : la licence est un rituel de
+paiement honnête, pas un verrou infranchissable.
+
+Et un achat unique à mises à jour perpétuelles finance zéro maintenance, alors
+que ce produit vit d'être exact sur une cible qui bouge — le format de
+`.claude`, le comportement du cache de plugins et les conventions de workflow
+ont tous changé pendant son écriture. Plus il y aura de licences, plus la
+maintenance coûtera sans jamais rien rapporter. C'est un choix assumé, pas un
+oubli.
 
 ### Déployer le service
 

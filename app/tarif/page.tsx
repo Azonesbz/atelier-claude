@@ -33,7 +33,8 @@ export default function Tarif() {
 
         <section className="card border-accent/40 p-5">
           <h2 className="surtitre">Modifier</h2>
-          <p className="mt-2 font-display text-2xl">Abonnement</p>
+          <p className="mt-2 font-display text-2xl">Achat unique</p>
+          <p className="mt-1 text-xs text-muted">Une fois. Mises à jour comprises, à vie.</p>
           <ul className="mt-3 space-y-1.5 text-sm text-muted">
             <li>Éditer une compétence depuis l&apos;interface</li>
             <li>Ajouter, retirer, renuméroter des étapes</li>
@@ -45,8 +46,7 @@ export default function Tarif() {
 
       <p className="mt-6 text-xs text-muted">
         L&apos;application tourne sur ta machine et lit ton disque : rien de ton dossier
-        <code> .claude</code> n&apos;est envoyé ici. Le service ne sait qu&apos;une chose — si ton
-        abonnement est actif.
+        <code> .claude</code> n&apos;est envoyé ici. Le service ne sait qu&apos;une chose — si ton achat existe.
       </p>
     </main>
   );

@@ -52,7 +52,7 @@ function relire(cheminSkill: string) {
 async function exigerLaLicence(): Promise<void> {
   if (await ecritureOuverte()) return;
   throw new Error(
-    "L'écriture demande un abonnement actif. La lecture reste entière — voir la page Licence.",
+    "L'écriture demande la licence. La lecture reste entière — voir la page Licence.",
   );
 }
 

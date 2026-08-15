@@ -6,8 +6,10 @@
  * cache, chaque rendu de page ferait un aller-retour réseau, et la moindre
  * coupure rendrait l'outil inutilisable.
  *
- * Le cache est volontairement long et tolérant. Couper l'écriture parce que le
- * wifi est tombé serait une punition absurde pour quelqu'un qui a payé.
+ * L'achat est unique et la licence perpétuelle : une fois vérifiée, elle ne
+ * périme jamais. Le service n'est rappelé que de loin en loin, pour attraper un
+ * remboursement — et une panne réseau ne referme jamais l'écriture de quelqu'un
+ * qui a payé.
  */
 
 import { readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
@@ -15,16 +17,17 @@ import { join } from "node:path";
 import { adresseDuService } from "./stripe.ts";
 
 const FICHIER = ".atelier-licence.json";
-/** Au-delà, on redemande au service. En dessous, on fait confiance au cache. */
-const DUREE_DU_CACHE = 12 * 60 * 60 * 1000;
-/** Un service injoignable ne coupe pas l'écriture avant ce délai. */
-const TOLERANCE_HORS_LIGNE = 14 * 24 * 60 * 60 * 1000;
+/** Une licence vérifiée est repointée de loin en loin, pour attraper un
+    remboursement. Entre deux, le cache fait foi — et hors ligne, indéfiniment. */
+const DUREE_DU_CACHE = 30 * 24 * 60 * 60 * 1000;
 
 export interface Licence {
   cle: string;
   /** Dernière réponse du service, et sa date. */
   valide: boolean;
+  /** Date d'achat, telle que le service la rapporte. */
   jusquau: string | null;
+  raison?: string;
   verifieLe: number;
 }
 
@@ -86,11 +89,20 @@ export async function etatDeLaLicence(): Promise<EtatLicence> {
       cache: "no-store",
       signal: AbortSignal.timeout(4000),
     });
-    const corps = (await reponse.json()) as { valide?: boolean; jusquau?: string | null };
+    const corps = (await reponse.json()) as {
+      valide?: boolean | null;
+      "achetéLe"?: string | null;
+      raison?: string | null;
+    };
+    // `valide: null` veut dire « service indisponible » : on ne touche pas au
+    // cache, sinon une panne de Stripe retirerait la licence d'un acheteur.
+    if (corps.valide === null || corps.valide === undefined) return depuisCache(licence);
+
     const frais: Licence = {
       cle: licence.cle,
       valide: corps.valide === true,
-      jusquau: corps.jusquau ?? null,
+      jusquau: corps["achetéLe"] ?? null,
+      raison: corps.raison ?? undefined,
       verifieLe: Date.now(),
     };
     ecrireFichier(frais);
@@ -100,22 +112,24 @@ export async function etatDeLaLicence(): Promise<EtatLicence> {
   }
 }
 
+/**
+ * Une licence déjà validée le reste.
+ *
+ * C'est la conséquence directe d'un achat unique : rien n'expire, donc rien ne
+ * doit se refermer parce qu'un serveur n'a pas répondu. Seul le service, joint
+ * et catégorique, peut retirer une licence — un remboursement.
+ */
 function depuisCache(licence: Licence): EtatLicence {
   if (licence.valide) return { etat: "active", jusquau: licence.jusquau, cle: licence.cle };
 
-  const jamaisVerifiee = licence.verifieLe === 0;
-  const perimee = Date.now() - licence.verifieLe > TOLERANCE_HORS_LIGNE;
-
-  if (jamaisVerifiee || perimee) {
-    return {
-      etat: "refusee",
-      raison: jamaisVerifiee
+  return {
+    etat: "refusee",
+    raison:
+      licence.verifieLe === 0
         ? "Cette clé n'a pas encore pu être vérifiée auprès du service."
-        : "Aucun abonnement actif pour cette clé.",
-      cle: licence.cle,
-    };
-  }
-  return { etat: "hors-ligne", depuis: new Date(licence.verifieLe).toISOString(), cle: licence.cle };
+        : (licence.raison ?? "Aucun paiement trouvé pour cette clé."),
+    cle: licence.cle,
+  };
 }
 
 /** Le seul appel dont l'interface a besoin : l'écriture est-elle ouverte ? */

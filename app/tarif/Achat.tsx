@@ -25,7 +25,7 @@ export function Achat() {
   return (
     <>
       <button type="button" onClick={acheter} disabled={enCours} className="btn-primary mt-4 w-full">
-        {enCours ? "Ouverture…" : "S'abonner"}
+        {enCours ? "Ouverture…" : "Acheter la licence"}
       </button>
       {erreur && (
         <p role="alert" className="mt-2 text-xs text-danger">

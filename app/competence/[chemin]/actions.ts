@@ -15,7 +15,7 @@ export async function enregistrer(_precedent: Retour, formulaire: FormData): Pro
   if (!(await ecritureOuverte())) {
     return {
       etat: "refuse",
-      message: "L'écriture demande un abonnement actif. La lecture reste entière — voir la page Licence.",
+      message: "L'écriture demande la licence. La lecture reste entière — voir la page Licence.",
     };
   }
   const chemin = String(formulaire.get("chemin") ?? "");
