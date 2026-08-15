@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ecritureOuverte } from "@/lib/licence/etat";
 import { brancherAgent, creerAgent, debrancherAgent } from "@/lib/ecriture/agent";
 import { ajouterEtape, decrireRetrait, retirerEtape } from "@/lib/ecriture/etape";
 import {
@@ -41,6 +42,20 @@ function relire(cheminSkill: string) {
   return workflow;
 }
 
+
+/**
+ * Le verrou d'écriture.
+ *
+ * Il vit ici, dans l'action serveur, et non dans l'interface : griser un bouton
+ * n'empêche personne d'appeler l'action directement. Toute écriture y passe.
+ */
+async function exigerLaLicence(): Promise<void> {
+  if (await ecritureOuverte()) return;
+  throw new Error(
+    "L'écriture demande un abonnement actif. La lecture reste entière — voir la page Licence.",
+  );
+}
+
 function aboutir(action: () => string): Retour {
   try {
     const message = action();
@@ -52,6 +67,11 @@ function aboutir(action: () => string): Retour {
 }
 
 export async function ajouter(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   return aboutir(() => {
     const cheminSkill = String(formulaire.get("skill") ?? "");
     const ecrit = ajouterEtape(cheminSkill, relire(cheminSkill), {
@@ -63,6 +83,11 @@ export async function ajouter(_precedent: Retour, formulaire: FormData): Promise
 }
 
 export async function brancher(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   return aboutir(() => {
     const resultat = brancherAgent(
       String(formulaire.get("etape") ?? ""),
@@ -75,6 +100,11 @@ export async function brancher(_precedent: Retour, formulaire: FormData): Promis
 }
 
 export async function creer(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   return aboutir(() => {
     const chemin = creerAgent(String(formulaire.get("portee") ?? "utilisateur") as Portee, {
       nom: String(formulaire.get("nom") ?? ""),
@@ -87,6 +117,11 @@ export async function creer(_precedent: Retour, formulaire: FormData): Promise<R
 }
 
 export async function debrancher(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   return aboutir(() => {
     const resultat = debrancherAgent(
       String(formulaire.get("etape") ?? ""),
@@ -123,6 +158,11 @@ export async function verifierRetrait(_precedent: Retour, formulaire: FormData):
 }
 
 export async function retirer(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   return aboutir(() => {
     const cheminSkill = String(formulaire.get("skill") ?? "");
     const numero = String(formulaire.get("numero") ?? "");
@@ -178,6 +218,11 @@ export async function appliquerRenumerotationAction(
   _precedent: Retour,
   formulaire: FormData,
 ): Promise<Retour> {
+  try {
+    await exigerLaLicence();
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
   const cheminSkill = String(formulaire.get("skill") ?? "");
   try {
     const plan = appliquerRenumerotation(

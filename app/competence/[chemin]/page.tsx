@@ -3,6 +3,7 @@ import { Formulaire } from "./Formulaire";
 import { notFound } from "next/navigation";
 import { Pastille, Silences } from "@/components/primitives";
 import { verifierChemin } from "@/lib/ecriture/competence";
+import { ecritureOuverte } from "@/lib/licence/etat";
 import { lireAtelier } from "@/lib/lecture/atelier";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,9 @@ export default async function Detail({ params }: { params: Promise<{ chemin: str
   const competence = lireAtelier().competences.find((c) => c.chemin === cible);
   if (!competence) notFound();
 
-  const refus = raisonDuRefus(cible);
+  const refus = (await ecritureOuverte())
+    ? raisonDuRefus(cible)
+    : "L'écriture demande un abonnement actif — la lecture reste entière. Voir la page Licence.";
 
   return (
     <main>

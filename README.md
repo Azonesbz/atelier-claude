@@ -50,6 +50,46 @@ Outfit porte le texte, Pacifico ne sert qu'au nom. Les rayons suivent la
 surface — 6 px un contrôle, 8 px un bouton, 16 px une carte — et les filets ont
 deux forces : 12 % pour le décor, 35 % pour les champs, seuil WCAG 1.4.11.
 
+## Lire est gratuit, écrire s'abonne
+
+L'application tourne sur **ta** machine et lit **ton** disque. Un serveur ne
+peut pas atteindre le `.claude` d'un client : il n'y a donc pas de compte, pas
+de session, pas de mot de passe. Une **clé de licence** ouvre l'écriture.
+
+| Ce que ça fait | Ce qu'il faut |
+| --- | --- |
+| Tout lire — inventaire, écarts, plans de workflow, veille | rien |
+| Modifier une compétence, une étape, un sous-agent | un abonnement actif |
+
+**La clé est un identifiant client Stripe signé.** Pas de base de données : la
+seule question posée est « cet abonnement est-il actif ? », et Stripe en est
+déjà la source de vérité. En doubler une seconde, ce serait fabriquer deux
+vérités qui divergeront. La signature HMAC empêche de fabriquer une clé ou de
+transformer la sienne en celle d'un autre ; la comparaison est à temps
+constant.
+
+Le verrou vit **dans les actions serveur**, pas dans l'interface : un bouton
+grisé n'empêche personne d'appeler l'action. Sept écritures, sept vérifications.
+
+**Ce que le service sait de toi : rien, sauf si ton abonnement est actif.**
+Aucun contenu de ton dossier `.claude` ne lui parvient — il ne reçoit qu'une
+clé et répond oui ou non.
+
+**La limite, dite franchement** : une application qui tourne sur la machine de
+son utilisateur peut être modifiée par lui. La licence est un rituel de
+paiement honnête, pas un verrou infranchissable. Le cache est d'ailleurs
+volontairement tolérant — quatorze jours hors ligne avant de refermer
+l'écriture, parce que couper quelqu'un qui a payé parce que son wifi est tombé
+serait absurde.
+
+### Déployer le service
+
+Le même dépôt sert deux rôles. En local il lit le disque ; déployé, il ne sert
+que `/tarif`, `/merci` et `/api/licence`. Les clés à renseigner sont listées
+dans `.secrets/atelier-claude.env` — `STRIPE_SECRET_KEY`,
+`NEXT_PUBLIC_STRIPE_PRICE_ID`, `ATELIER_LICENCE_SECRET`,
+`NEXT_PUBLIC_ATELIER_SERVICE`.
+
 ## Les pages
 
 **Ce n'est pas un site, c'est une application.** Le corps ne défile pas : rail
@@ -293,7 +333,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Soixante-dix tests TypeScript, huit Python. Les cas les plus utiles sont des
+Soixante-dix-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 

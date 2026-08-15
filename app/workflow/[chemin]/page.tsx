@@ -5,6 +5,7 @@ import { AtelierWorkflow } from "./Atelier";
 import { Pastille } from "@/components/primitives";
 import { verifierChemin } from "@/lib/ecriture/competence";
 import { EcritureRefusee } from "@/lib/ecriture/garde";
+import { ecritureOuverte } from "@/lib/licence/etat";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
 
@@ -26,7 +27,9 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
 
   const manquantes = workflow.etapes.filter((e) => !e.present).length;
   const arrets = workflow.etapes.filter((e) => e.arretDur).length;
-  const refus = raisonDuRefus(competence.chemin);
+  const refus = (await ecritureOuverte())
+    ? raisonDuRefus(competence.chemin)
+    : "L'écriture demande un abonnement actif — la lecture reste entière. Voir la page Licence.";
   // Un trou dans la numérotation : 00, 01, 03 — l'étape 02 a été retirée.
   const numerotationATrou = workflow.etapes.some((e, i) => Number(e.numero) !== i);
 
