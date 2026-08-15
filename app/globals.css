@@ -68,9 +68,11 @@ body {
 }
 
 /* Grille de fond : 64px, masquée en ellipse depuis le haut. Décorative, donc
-   derrière tout et ignorée des lecteurs d'écran. */
+   derrière tout et ignorée des lecteurs d'écran. `absolute` et non `fixed` :
+   elle appartient à la zone de contenu, pas à la fenêtre — le rail garde son
+   fond propre. */
 .fond-grille {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;

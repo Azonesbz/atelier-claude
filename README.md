@@ -52,8 +52,21 @@ deux forces : 12 % pour le décor, 35 % pour les champs, seuil WCAG 1.4.11.
 
 ## Les pages
 
-Un dock en haut, présent partout. L'outil tenait sur une seule page de sept
-mille pixels — on savait où on était parce qu'il n'y avait qu'un endroit.
+**Ce n'est pas un site, c'est une application.** Le corps ne défile pas : rail
+de navigation fixe à gauche, une seule zone de contenu qui bouge. C'est ce qui
+survivra à un empaquetage en logiciel, là où une colonne centrée à grandes
+marges gaspillerait la fenêtre. En dessous de `md`, le rail se couche en barre.
+
+La vue d'ensemble est un tableau de bord : le nombre d'éléments sans effet en
+tête, huit tuiles chiffrées, la liste de ce qui demande un coup d'œil, et la
+répartition de ce qui charge par provenance.
+
+Aucun graphique pour les compteurs : douze compétences et quarante règles de
+permission ne se comparent pas, ce sont des objets différents. La seule figure
+est la répartition par portée — une barre, trois pas de gris. Le validateur de
+palette a refusé le premier jeu (ΔE 11,4 entre deux pas voisins, sous le seuil
+de 15 même en vision normale) ; élargi il passe à 27, et chaque segment porte
+son étiquette parce que le pas le plus sombre reste sous 3:1.
 
 | Page | Ce qu'on y trouve |
 | --- | --- |
