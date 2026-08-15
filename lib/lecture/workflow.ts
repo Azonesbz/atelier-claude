@@ -15,28 +15,81 @@ import { dirname, join, resolve } from "node:path";
 import type { Silence } from "../types.ts";
 import { estDossier, listerFichiers, lireTexte } from "./fichiers.ts";
 
-/** `| 02 | `steps/step-02-plan.md` | Plan dans le fil → arrêt dur | */
-const LIGNE_ETAPE = /^\|\s*(\d+)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*$/;
-const CHEMIN_CITE = /`([^`]+\.md)`/;
+/**
+ * Une ligne d'étape : un numéro, puis quelque part un fichier `.md`.
+ *
+ * La première version exigeait exactement trois colonnes et un chemin entre
+ * accents graves — la forme de `halo` et de `lancer`, qui écrivent pareil.
+ * `giva-flow` en a quatre (la dernière porte « ARRÊT DUR 1 ») et cite ses
+ * étapes en liens Markdown : il n'était pas reconnu du tout. On accepte donc
+ * trois colonnes ou plus, et les trois façons d'écrire un chemin.
+ */
+const LIGNE_TABLEAU = /^\|(.+)\|\s*$/;
+const CHEMIN_CITE = /`([^`]+\.md)`|\[[^\]]*\]\(([^)]+\.md)\)|(?:^|[\s(])([\w./-]+\.md)(?:[\s)]|$)/;
+const CELLULES_MINIMUM = 3;
+
+/** Les cellules d'une ligne de tableau, sans les barres de bord. */
+function cellulesDe(ligne: string): string[] | null {
+  const trouve = LIGNE_TABLEAU.exec(ligne);
+  if (!trouve) return null;
+  const cellules = trouve[1].split("|").map((c) => c.trim());
+  return cellules.length >= CELLULES_MINIMUM - 1 ? cellules : null;
+}
+
+/** Le chemin cité dans une cellule, quelle que soit sa forme. */
+function cheminDansLaCellule(cellule: string): string | null {
+  const trouve = CHEMIN_CITE.exec(cellule);
+  if (!trouve) return null;
+  return trouve[1] ?? trouve[2] ?? trouve[3] ?? null;
+}
+
+/** Le numéro, le fichier et le rôle d'une ligne — ou null si ce n'en est pas une. */
+function lireLaLigne(ligne: string): { numero: string; fichier: string; role: string } | null {
+  const cellules = cellulesDe(ligne);
+  if (!cellules || !/^\d+$/.test(cellules[0])) return null;
+
+  for (let i = 1; i < cellules.length; i++) {
+    const fichier = cheminDansLaCellule(cellules[i]);
+    if (!fichier) continue;
+    const role = (cellules[i + 1] ?? cellules[i]).replace(/\*\*/g, "").trim();
+    return { numero: cellules[0], fichier, role };
+  }
+  return null;
+}
 const JETON = /`([^`\s]+)`/g;
 const ARRET_DUR = /arrêts?\s+durs?|hard\s+stops?/i;
+
+/** Ce qui précède parfois « arrêt dur » pour en nier un. */
+const NEGATION = /\b(pas|aucun|aucune|sans|ni|non|jamais)\b[^.]{0,24}$/i;
+
+/**
+ * Le terme est-il employé pour déclarer un arrêt, ou pour en nier un ?
+ *
+ * Deux compétences écrivent « arrêt dur » précisément pour dire qu'il n'y en a
+ * pas ici : `halo/step-01` (« Cet arrêt ne remplace pas l'arrêt dur du plan »)
+ * et `giva-flow/step-04`, dont un titre annonce « point d'information, pas
+ * arrêt dur ». Les compter donnait trois arrêts là où giva-flow en déclare
+ * deux dans sa propre description.
+ */
+function annonceUnArret(texte: string): boolean {
+  const trouve = ARRET_DUR.exec(texte);
+  if (!trouve) return false;
+  return !NEGATION.test(texte.slice(0, trouve.index));
+}
 
 /**
  * Un arrêt dur ne se déduit pas du corps du fichier.
  *
- * `step-01-analyze.md` de `halo` contient « arrêt dur » uniquement pour dire
- * qu'il n'en a pas : « Cet arrêt ne remplace pas l'arrêt dur du plan ». Une
- * recherche plein texte comptait donc deux arrêts là où `step-02` se déclare
- * « le seul arrêt dur de HALO ». On ne lit plus que la cellule du tableau et
- * les titres du fichier — là où l'auteur l'annonce vraiment.
+ * On ne lit que la ligne du tableau et les titres du fichier — là où l'auteur
+ * l'annonce vraiment —, et jamais une mention qui le nie.
  */
 function declareUnArretDur(role: string, contenu: string | null): boolean {
-  if (ARRET_DUR.test(role)) return true;
+  if (annonceUnArret(role)) return true;
   if (!contenu) return false;
   return contenu
     .split("\n")
     .filter((ligne) => ligne.startsWith("#"))
-    .some((titre) => ARRET_DUR.test(titre));
+    .some(annonceUnArret);
 }
 
 const RENVOI_ETAPE = /(?:étapes?|steps?)[\s-]*(\d+)/gi;
@@ -109,10 +162,7 @@ export interface Resolveur {
  * de toutes les compétences pour afficher un lien.
  */
 export function aDesEtapes(corps: string): boolean {
-  return corps.split("\n").some((ligne) => {
-    const trouve = LIGNE_ETAPE.exec(ligne);
-    return trouve !== null && CHEMIN_CITE.test(trouve[2]);
-  });
+  return corps.split("\n").some((ligne) => lireLaLigne(ligne) !== null);
 }
 
 /** Rend null si la compétence ne se déroule pas en étapes. */
@@ -121,10 +171,9 @@ export function lireWorkflow(cheminSkill: string, corps: string, resolveur: Reso
   const annonces = arretsAnnoncesDansLeSkill(corps);
   const etapes = corps
     .split("\n")
-    .map((ligne) => LIGNE_ETAPE.exec(ligne))
-    .filter((t): t is RegExpExecArray => t !== null)
-    .map((t) => construire(t, racine, resolveur, annonces))
-    .filter((e): e is EtapeWorkflow => e !== null);
+    .map((ligne) => ({ ligne, lue: lireLaLigne(ligne) }))
+    .filter((x): x is { ligne: string; lue: NonNullable<ReturnType<typeof lireLaLigne>> } => x.lue !== null)
+    .map((x) => construire(x.lue, x.ligne, racine, resolveur, annonces));
 
   if (etapes.length === 0) return null;
   confirmerLesTransitions(etapes);
@@ -158,30 +207,31 @@ function confirmerLesTransitions(etapes: EtapeWorkflow[]): void {
 }
 
 function construire(
-  trouve: RegExpExecArray,
+  lue: { numero: string; fichier: string; role: string },
+  ligne: string,
   racine: string,
   resolveur: Resolveur,
   annonces: Set<string>,
-): EtapeWorkflow | null {
-  const [, numero, cellule, role] = trouve;
-  const cite = CHEMIN_CITE.exec(cellule);
-  if (!cite) return null;
-
-  const fichierDeclare = cite[1];
+): EtapeWorkflow {
+  const { numero, role } = lue;
+  const fichierDeclare = lue.fichier;
   const cheminAbsolu = resolve(racine, fichierDeclare);
   const contenu = lireTexte(cheminAbsolu);
   const present = contenu !== null;
 
   return {
     numero,
-    role: role.replace(/\*\*/g, "").trim(),
+    role,
     fichierDeclare,
     cheminAbsolu,
     present,
     lignes: contenu ? contenu.split("\n").length : 0,
     agents: referencesDans(contenu, resolveur.agents),
     competences: referencesDans(contenu, resolveur.competences),
-    arretDur: annonces.has(numero.padStart(2, "0")) || declareUnArretDur(role, contenu),
+    // Le marqueur peut vivre dans n'importe quelle cellule — `giva-flow` le met
+    // dans une quatrième colonne dédiée. Une ligne de tableau n'est pas de la
+    // prose : la balayer en entier ne risque pas le faux positif.
+    arretDur: annonces.has(numero.padStart(2, "0")) || declareUnArretDur(ligne, contenu),
     suivanteConfirmee: false,
     silences: present
       ? []

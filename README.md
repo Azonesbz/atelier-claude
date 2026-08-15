@@ -103,8 +103,24 @@ Une mention en passant dans un corps ne compte pas — `halo/step-01` contient
 « arrêt dur » uniquement pour dire qu'il n'en a **pas**, et le compter en
 faisait deux là où `step-02` se déclare « le seul arrêt dur de HALO ».
 
-Seules les compétences qui utilisent un tableau d'étapes sont reconnues : deux
-sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
+### Comment un workflow est reconnu
+
+Une ligne de tableau dont **la première cellule est un nombre** et dont **une
+cellule cite un fichier `.md`**. Le rôle est la cellule suivante.
+
+Les trois façons d'écrire le chemin sont acceptées — accents graves
+`` `steps/step-00.md` ``, lien Markdown `[texte](steps/step-00.md)`, ou chemin
+nu — et le tableau peut avoir trois colonnes ou davantage. La première version
+n'acceptait que la forme de `halo` et de `lancer` (trois colonnes, accents
+graves) : `giva-flow`, qui en a quatre et cite ses étapes en liens, n'était pas
+reconnu du tout.
+
+Un arrêt dur se lit à trois endroits : la ligne du tableau, un titre du fichier
+d'étape, ou une section « arrêts durs » du `SKILL.md` qui énumère les numéros.
+**Une mention qui nie un arrêt n'en déclare pas un** — `halo/step-01` écrit
+« Cet arrêt ne remplace pas l'arrêt dur du plan », `giva-flow/step-04` titre
+« point d'information, pas arrêt dur ». Sans cette garde, giva-flow affichait
+trois arrêts là où sa propre description en annonce deux.
 
 ## Ce que ça modifie
 

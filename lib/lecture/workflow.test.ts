@@ -147,3 +147,43 @@ test("les arrêts annoncés dans une section du SKILL.md sont repris", () => {
     ["01", "02"],
   );
 });
+
+test("un titre qui NIE un arrêt dur n'en déclare pas un", () => {
+  // Arrange — la formulation exacte de giva-flow/step-04, qui en nie un
+  const racine = atelierJetable();
+  writeFileSync(join(racine, "steps", "step-00-init.md"), "Rien.\n", "utf8");
+  writeFileSync(
+    join(racine, "steps", "step-01-analyze.md"),
+    "### Montrer la surface — point d'information, pas arrêt dur\n",
+    "utf8",
+  );
+  writeFileSync(join(racine, "steps", "step-02-plan.md"), "# Étape 02 — Plan (arrêt dur `ok`)\n", "utf8");
+
+  // Act
+  const workflow = lireWorkflow(join(racine, "SKILL.md"), TABLEAU, RESOLVEUR);
+
+  // Assert
+  assert.deepEqual(workflow?.etapes.filter((e) => e.arretDur).map((e) => e.numero), ["02"]);
+});
+
+test("un tableau à quatre colonnes et à liens Markdown est lu", () => {
+  // Arrange — la forme de giva-flow : le marqueur vit dans une colonne dédiée
+  const racine = atelierJetable();
+  for (const n of ["00-depart", "01-suite", "02-plan"]) {
+    writeFileSync(join(racine, "steps", `step-${n}.md`), "Rien.\n", "utf8");
+  }
+  const corps = [
+    "| # | Étape | Rôle | Arrêt |",
+    "|---|---|---|---|",
+    "| 0 | [steps/step-00-depart.md](steps/step-00-depart.md) | Départ | — |",
+    "| 1 | [steps/step-01-suite.md](steps/step-01-suite.md) | Suite | **ARRÊT DUR 1** |",
+  ].join("\n");
+
+  // Act
+  const workflow = lireWorkflow(join(racine, "SKILL.md"), corps, RESOLVEUR);
+
+  // Assert
+  assert.equal(workflow?.etapes.length, 2);
+  assert.equal(workflow?.etapes[0].role, "Départ", "le rôle est la cellule qui suit le lien");
+  assert.deepEqual(workflow?.etapes.filter((e) => e.arretDur).map((e) => e.numero), ["1"]);
+});
