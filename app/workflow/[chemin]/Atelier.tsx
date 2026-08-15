@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Icone, Modale } from "@/components/Modale";
 import {
   ajouter,
   apercuRenumerotation,
@@ -47,21 +48,110 @@ export function AtelierWorkflow({
     );
   }
 
+  return <BarreOutils cheminSkill={cheminSkill} etapes={etapes} agents={agentsDisponibles} numerotationATrou={numerotationATrou} />;
+}
+
+type Outil = "ajout" | "branchement" | "agent" | "retrait" | "renumerotation";
+
+/**
+ * Une barre d'icônes, et une modale par geste.
+ *
+ * Les cinq formulaires empilés prenaient plus de place que le plan qu'ils
+ * servent à modifier, et poussaient les étapes hors de l'écran. Ils ne sont
+ * ouverts que quand on les demande.
+ */
+function BarreOutils({
+  cheminSkill,
+  etapes,
+  agents,
+  numerotationATrou,
+}: {
+  cheminSkill: string;
+  etapes: EtapeBranchable[];
+  agents: string[];
+  numerotationATrou: boolean;
+}) {
+  const [ouvert, setOuvert] = useState<Outil | null>(null);
+  const fermer = () => setOuvert(null);
+
+  const OUTILS: Array<{ cle: Outil; icone: Parameters<typeof Icone>[0]["nom"]; libelle: string; sourd?: boolean }> = [
+    { cle: "ajout", icone: "plus", libelle: "Ajouter une étape" },
+    { cle: "branchement", icone: "prise", libelle: "Brancher un sous-agent" },
+    { cle: "agent", icone: "agent", libelle: "Créer un sous-agent" },
+    { cle: "retrait", icone: "moins", libelle: "Retirer une étape", sourd: true },
+    ...(numerotationATrou
+      ? ([{ cle: "renumerotation", icone: "numeros", libelle: "Renuméroter", sourd: true }] as const)
+      : []),
+  ];
+
   return (
-    <div className="mt-8 grid gap-6 md:grid-cols-2">
-      <AjoutEtape cheminSkill={cheminSkill} />
-      <Branchement etapes={etapes} agents={agentsDisponibles} />
-      <CreationAgent />
-      <RetraitEtape cheminSkill={cheminSkill} etapes={etapes} />
-      {numerotationATrou && <Renumerotation cheminSkill={cheminSkill} />}
-    </div>
+    <>
+      <div className="mt-6 flex flex-wrap gap-2">
+        {OUTILS.map((o) => (
+          <button
+            key={o.cle}
+            type="button"
+            onClick={() => setOuvert(o.cle)}
+            className={o.sourd ? "btn-ghost" : "btn-secondary"}
+          >
+            <Icone nom={o.icone} />
+            {o.libelle}
+          </button>
+        ))}
+      </div>
+
+      <Modale
+        ouverte={ouvert === "ajout"}
+        onFermer={fermer}
+        titre="Ajouter une étape"
+        aide="Le fichier est créé et la ligne ajoutée au tableau. Les deux, ou rien."
+      >
+        <AjoutEtape cheminSkill={cheminSkill} />
+      </Modale>
+
+      <Modale
+        ouverte={ouvert === "branchement"}
+        onFermer={fermer}
+        titre="Brancher un sous-agent"
+        aide="Écrit dans la section « Sous-agents » de l'étape. Ta prose n'est jamais touchée, ni pour brancher ni pour retirer."
+      >
+        <Branchement etapes={etapes} agents={agents} />
+      </Modale>
+
+      <Modale
+        ouverte={ouvert === "agent"}
+        onFermer={fermer}
+        titre="Créer un sous-agent"
+        aide="Écrit agents/<nom>.md. La description décide s'il sera choisi — soigne-la."
+      >
+        <CreationAgent />
+      </Modale>
+
+      <Modale
+        ouverte={ouvert === "retrait"}
+        onFermer={fermer}
+        titre="Retirer une étape"
+        aide="En deux temps : on montre d'abord ce qui partira, on écrit ensuite. Rien n'est effacé — le fichier va dans retirees/."
+      >
+        <RetraitEtape cheminSkill={cheminSkill} etapes={etapes} />
+      </Modale>
+
+      <Modale
+        ouverte={ouvert === "renumerotation"}
+        onFermer={fermer}
+        titre="Renuméroter la séquence"
+        aide="Referme les trous. Renomme les fichiers et suit tous les renvois — montré avant d'être écrit."
+      >
+        <Renumerotation cheminSkill={cheminSkill} />
+      </Modale>
+    </>
   );
 }
 
 function AjoutEtape({ cheminSkill }: { cheminSkill: string }) {
   const [retour, action, enCours] = useActionState(ajouter, VIERGE);
   return (
-    <Carte titre="Ajouter une étape" aide="Le fichier est créé et la ligne ajoutée au tableau. Les deux, ou rien.">
+    <>
       <form action={action} className="space-y-2">
         <input type="hidden" name="skill" value={cheminSkill} />
         <Champ name="titre" placeholder="Titre de l'étape" required />
@@ -69,7 +159,7 @@ function AjoutEtape({ cheminSkill }: { cheminSkill: string }) {
         <Bouton enCours={enCours}>Créer l&apos;étape</Bouton>
         <Message retour={retour} />
       </form>
-    </Carte>
+    </>
   );
 }
 
@@ -81,10 +171,7 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
   const dernier = retourDebranche.etat !== "vierge" ? retourDebranche : retour;
 
   return (
-    <Carte
-      titre="Brancher un sous-agent"
-      aide="Écrit dans la section « Sous-agents » de l'étape. Ta prose n'est jamais touchée, ni pour brancher ni pour retirer."
-    >
+    <>
       <form className="space-y-2">
         <select
           name="etape"
@@ -117,7 +204,7 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
         </div>
         <Message retour={dernier} />
       </form>
-    </Carte>
+    </>
   );
 }
 
@@ -136,10 +223,7 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
   const aConfirmer = apercu.etat === "fait" && apercu.empreinte && ecriture.etat !== "fait";
 
   return (
-    <Carte
-      titre="Retirer une étape"
-      aide="La ligne quitte le tableau et le fichier part dans retirees/, à côté. Rien n'est effacé, et rien n'est écrit avant confirmation."
-    >
+    <>
       <div className="space-y-2">
         <form action={verifier} className="space-y-2">
           <input type="hidden" name="skill" value={cheminSkill} />
@@ -187,7 +271,7 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
           </form>
         )}
       </div>
-    </Carte>
+    </>
   );
 }
 
@@ -207,10 +291,7 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
   const dejaEcrit = ecriture.etat === "fait";
 
   return (
-    <Carte
-      titre="Renuméroter la séquence"
-      aide="Referme les trous : 00, 01, 02, 04 devient 00, 01, 02, 03. Renomme les fichiers et suit tous les renvois."
-    >
+    <>
       <div className="space-y-2">
         <form action={voir}>
           <input type="hidden" name="skill" value={cheminSkill} />
@@ -239,14 +320,14 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
           </form>
         )}
       </div>
-    </Carte>
+    </>
   );
 }
 
 function CreationAgent() {
   const [retour, action, enCours] = useActionState(creer, VIERGE);
   return (
-    <Carte titre="Créer un sous-agent" aide="Écrit agents/<nom>.md. La description décide s'il sera choisi — soigne-la.">
+    <>
       <form action={action} className="space-y-2">
         <Champ name="nom" placeholder="nom-en-minuscules" required />
         <textarea
@@ -267,17 +348,7 @@ function CreationAgent() {
         <Bouton enCours={enCours}>Créer l&apos;agent</Bouton>
         <Message retour={retour} />
       </form>
-    </Carte>
-  );
-}
-
-function Carte({ titre, aide, children }: { titre: string; aide: string; children: React.ReactNode }) {
-  return (
-    <section className="card p-5">
-      <h3 className="text-sm font-semibold">{titre}</h3>
-      <p className="mb-3 text-xs text-muted">{aide}</p>
-      {children}
-    </section>
+    </>
   );
 }
 

@@ -205,6 +205,12 @@ seule expression** et remplacés d'un coup ; et renommer 04 en 03 écraserait le
 fichier 03 s'il n'avait pas encore bougé, donc les renommages passent par un
 nom provisoire.
 
+Les cinq gestes vivent dans une barre d'icônes sous le plan, chacun ouvrant
+une modale. Ils étaient auparavant cinq formulaires empilés qui prenaient plus
+de place que le plan qu'ils servent à modifier et poussaient les étapes hors de
+l'écran. Les modales sont des `<dialog>` natifs : le piège de focus,
+l'échappement et l'inertie du reste de la page viennent avec, sans dépendance.
+
 **Les deux gestes qui enlèvent le plus se confirment en deux temps** : retirer
 une étape, et renuméroter. Le premier clic ne fait que montrer — pour un
 retrait, la ligne exacte du tableau qui disparaîtra, le fichier visé et sa
