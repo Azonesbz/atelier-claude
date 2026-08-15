@@ -64,6 +64,8 @@ export function ajouterEtape(cheminSkill: string, workflow: Workflow, etape: Nou
   const slug = enSlug(titre);
   if (!slug) throw new EcritureRefusee(`« ${titre} » ne donne aucun nom de fichier utilisable.`);
 
+  refuserUnDoublon(workflow, slug);
+
   const relatif = `${convention.dossier}/${convention.prefixe}-${convention.prochainNumero}-${slug}.md`;
   const cheminEtape = join(dirname(absolu), relatif);
   cheminModifiable(cheminEtape);
@@ -81,6 +83,31 @@ export function ajouterEtape(cheminSkill: string, workflow: Workflow, etape: Nou
     throw erreur;
   }
   return cheminEtape;
+}
+
+/**
+ * Refuse une étape dont le titre existe déjà dans la séquence.
+ *
+ * C'est le garde-fou du double clic, et il vit ici plutôt que dans le bouton.
+ * `doitEtreLibre` ne voyait rien : la seconde soumission relit le disque, voit
+ * l'étape qui vient d'être créée, vise le numéro suivant — et fabrique
+ * `etape-02-relecture.md` puis `etape-03-relecture.md`, deux fichiers dont les
+ * noms diffèrent d'un chiffre. Un bouton grisé n'aurait pas suffi : un onglet
+ * rouvert, un renvoi après délai d'attente, et le doublon revient.
+ */
+function refuserUnDoublon(workflow: Workflow, slug: string): void {
+  const existante = workflow.etapes.find((e) => slugDuFichier(e.fichierDeclare) === slug);
+  if (!existante) return;
+
+  throw new EcritureRefusee(
+    `Une étape porte déjà ce titre — l'étape ${existante.numero}, « ${existante.role} ». ` +
+      "Choisis-en un autre, ou modifie celle qui existe.",
+  );
+}
+
+/** `etapes/etape-02-le-grand-menage.md` → `le-grand-menage`. */
+function slugDuFichier(fichierDeclare: string): string {
+  return basename(fichierDeclare, ".md").replace(/^.*?-\d+-/, "");
 }
 
 function squelette(numero: string, titre: string, sortie: string): string {

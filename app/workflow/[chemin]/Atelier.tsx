@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Icone, Modale } from "@/components/Modale";
 import {
   ajouter,
@@ -150,9 +150,10 @@ function BarreOutils({
 
 function AjoutEtape({ cheminSkill }: { cheminSkill: string }) {
   const [retour, action, enCours] = useActionState(ajouter, VIERGE);
+  const formulaire = useVidangeApresSucces(retour);
   return (
     <>
-      <form action={action} className="space-y-2">
+      <form ref={formulaire} action={action} className="space-y-2">
         <input type="hidden" name="skill" value={cheminSkill} />
         <Champ name="titre" placeholder="Titre de l'étape" required />
         <Champ name="sortie" placeholder="Sortie attendue" />
@@ -326,9 +327,10 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
 
 function CreationAgent() {
   const [retour, action, enCours] = useActionState(creer, VIERGE);
+  const formulaire = useVidangeApresSucces(retour);
   return (
     <>
-      <form action={action} className="space-y-2">
+      <form ref={formulaire} action={action} className="space-y-2">
         <Champ name="nom" placeholder="nom-en-minuscules" required />
         <textarea
           name="description"
@@ -354,6 +356,21 @@ function CreationAgent() {
 
 function Champ(proprietes: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...proprietes} className="field" />;
+}
+
+/**
+ * Vide le formulaire après une création réussie.
+ *
+ * Sans ça, la saisie reste en place et un second clic recrée légitimement la
+ * même chose — c'est l'autre moitié du doublon, celle que le refus serveur
+ * transforme en message d'erreur plutôt qu'en fichier de trop.
+ */
+function useVidangeApresSucces(retour: Retour) {
+  const formulaire = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (retour.etat === "fait") formulaire.current?.reset();
+  }, [retour]);
+  return formulaire;
 }
 
 interface ProprietesBouton {

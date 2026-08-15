@@ -237,6 +237,15 @@ trois arrêts là où sa propre description en annonce deux.
 | Débrancher un sous-agent | la puce est retirée, et la section avec elle si elle se vide |
 | Créer un sous-agent | `agents/<nom>.md`, portée utilisateur ou projet |
 
+**Deux étapes du même titre sont refusées**, quel que soit leur numéro. Le
+double clic ne fabriquait pas un fichier identique mais deux fichiers dont les
+noms ne diffèrent que d'un chiffre — `etape-01-relecture.md` puis
+`etape-02-relecture.md` — parce que la seconde soumission relit le disque et
+vise le numéro suivant. Le refus vit côté serveur : un bouton grisé n'y aurait
+rien fait, un onglet rouvert ou un renvoi après délai d'attente ramenant le
+doublon. Les formulaires de création se vident après un succès, pour que la
+saisie ne reste pas armée.
+
 L'ajout d'une étape déduit la convention du workflow au lieu d'en imposer une :
 `halo` reçoit `steps/step-11-….md`, `lancer` reçoit `etapes/etape-07-….md`. Si
 la ligne du tableau ne peut pas être écrite, le fichier créé est retiré — un
@@ -342,7 +351,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Soixante-dix-sept tests TypeScript, huit Python. Les cas les plus utiles sont des
+Soixante-dix-neuf tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 

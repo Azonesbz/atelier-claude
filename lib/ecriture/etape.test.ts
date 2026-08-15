@@ -9,7 +9,7 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { ajouterEtape, conventionDe, decrireRetrait, retirerEtape } from "./etape.ts";
 import type { EtapeWorkflow, Workflow } from "../lecture/workflow.ts";
@@ -208,4 +208,41 @@ test("un retrait confirmé sur l'état montré passe", () => {
   // Assert
   assert.equal(destination, description.destination);
   assert.equal(existsSync(fichier), false);
+});
+
+test("deux étapes du même titre sont refusées, quel que soit leur numéro", () => {
+  // Arrange — le double clic : la seconde relit le disque, voit l'étape 02 et
+  // vise 03. `doitEtreLibre` ne s'y oppose pas, les noms diffèrent d'un chiffre.
+  const { skill, workflow } = atelierJetable("etapes", "etape");
+  const premier = ajouterEtape(skill, workflow, { titre: "Le grand ménage", sortieAttendue: "x" });
+  const relu: Workflow = {
+    ...workflow,
+    etapes: [
+      ...workflow.etapes,
+      { ...workflow.etapes[0], numero: "02", fichierDeclare: "etapes/etape-02-le-grand-menage.md", cheminAbsolu: premier },
+    ],
+  };
+
+  // Act & Assert
+  assert.throws(
+    () => ajouterEtape(skill, relu, { titre: "Le grand ménage", sortieAttendue: "x" }),
+    /déjà ce titre/i,
+  );
+  assert.equal(existsSync(join(dirname(premier), "etape-03-le-grand-menage.md")), false);
+});
+
+test("un titre qui donne le même nom de fichier, à la casse près, est refusé aussi", () => {
+  // Arrange
+  const { skill, workflow } = atelierJetable("etapes", "etape");
+  const premier = ajouterEtape(skill, workflow, { titre: "Le Grand Ménage", sortieAttendue: "x" });
+  const relu: Workflow = {
+    ...workflow,
+    etapes: [
+      ...workflow.etapes,
+      { ...workflow.etapes[0], numero: "02", fichierDeclare: "etapes/etape-02-le-grand-menage.md", cheminAbsolu: premier },
+    ],
+  };
+
+  // Act & Assert
+  assert.throws(() => ajouterEtape(skill, relu, { titre: "le grand menage", sortieAttendue: "x" }), /déjà ce titre/i);
 });
