@@ -32,7 +32,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
 
   return (
     <main>
-      <Link href="/" className="text-sm text-attenue underline-offset-2 hover:underline">
+      <Link href="/" className="text-sm text-muted underline-offset-2 hover:underline">
         ← toutes les compétences
       </Link>
 
@@ -41,14 +41,14 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
           {competence.nom}
           <Pastille portee={competence.portee} origine={competence.origine} />
         </h1>
-        <p className="mt-2 text-sm text-attenue">
+        <p className="mt-2 text-sm text-muted">
           {workflow.etapes.length} étapes · {arrets} arrêt{arrets > 1 ? "s" : ""} dur
           {arrets > 1 ? "s" : ""} ·{" "}
           {workflow.depart
             ? `entrée déclarée à l'étape ${workflow.depart}`
             : "entrée non déclarée, la première du tableau fait foi"}
           {manquantes > 0 && (
-            <span className="text-alerte"> · {manquantes} fichier(s) d&apos;étape absent(s)</span>
+            <span className="text-danger"> · {manquantes} fichier(s) d&apos;étape absent(s)</span>
           )}
         </p>
         <Link
@@ -76,7 +76,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
         numerotationATrou={numerotationATrou}
       />
 
-      <p className="mt-6 font-mono text-[11px] text-attenue">
+      <p className="mt-6 font-mono text-[11px] text-muted">
         trait plein : l&apos;étape nomme elle-même la suivante · trait pointillé : ordre du
         tableau seulement
       </p>
@@ -86,12 +86,12 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
           <h2 className="mb-2 text-sm font-semibold tracking-wide uppercase">
             Fichiers hors séquence
           </h2>
-          <p className="mb-2 text-sm text-attenue">
+          <p className="mb-2 text-sm text-muted">
             Présents dans le dossier d&apos;étapes, absents du tableau : jamais lus.
           </p>
-          <ul className="rounded-lg border border-bord bg-carte px-4">
+          <ul className="rounded-lg border border-line bg-surface px-4">
             {workflow.orphelins.map((chemin) => (
-              <li key={chemin} className="border-b border-bord py-2 font-mono text-xs last:border-0">
+              <li key={chemin} className="border-b border-line py-2 font-mono text-xs last:border-0">
                 {chemin}
               </li>
             ))}

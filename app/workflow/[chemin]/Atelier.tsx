@@ -41,7 +41,7 @@ export function AtelierWorkflow({
 }) {
   if (!modifiable) {
     return (
-      <p className="mt-6 rounded border border-alerte/30 bg-alerte-fond px-3 py-2 text-sm text-alerte">
+      <p className="mt-6 rounded border border-danger/30 bg-danger-wash px-3 py-2 text-sm text-danger">
         {raisonDuRefus}
       </p>
     );
@@ -90,7 +90,7 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
           name="etape"
           value={choisie}
           onChange={(e) => setChoisie(e.target.value)}
-          className="w-full rounded border border-bord bg-carte p-2 text-sm"
+          className="field"
         >
           {etapes.map((e) => (
             <option key={e.chemin} value={e.chemin} disabled={!e.present}>
@@ -99,7 +99,7 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
             </option>
           ))}
         </select>
-        <select name="agent" className="w-full rounded border border-bord bg-carte p-2 font-mono text-sm">
+        <select name="agent" className="field font-mono">
           {agents.map((nom) => (
             <option key={nom} value={nom}>
               {nom}
@@ -147,7 +147,7 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
             name="numero"
             value={numero}
             onChange={(e) => setNumero(e.target.value)}
-            className="w-full rounded border border-bord bg-carte p-2 text-sm"
+            className="field"
           >
             <option value="" disabled>
               choisir l&apos;étape à retirer…
@@ -165,7 +165,7 @@ function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: Et
         </form>
 
         {dernier.details && (
-          <ul className="overflow-x-auto rounded border border-bord p-2 font-mono text-[10px] leading-relaxed text-attenue">
+          <ul className="overflow-x-auto rounded border border-line p-2 font-mono text-[10px] leading-relaxed text-muted">
             {dernier.details.map((ligne, i) => (
               <li key={i} className="whitespace-nowrap">
                 {ligne}
@@ -220,7 +220,7 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
         </form>
 
         {dernier.details && (
-          <ul className="max-h-64 overflow-y-auto rounded border border-bord p-2 font-mono text-[10px] leading-relaxed text-attenue">
+          <ul className="max-h-64 overflow-y-auto rounded border border-line p-2 font-mono text-[10px] leading-relaxed text-muted">
             {dernier.details.map((ligne, i) => (
               <li key={i} className="truncate" title={ligne}>
                 {ligne}
@@ -254,13 +254,13 @@ function CreationAgent() {
           rows={2}
           required
           placeholder="Quand déléguer à cet agent, et pour quoi faire"
-          className="w-full rounded border border-bord bg-carte p-2 text-sm"
+          className="field"
         />
         <div className="grid grid-cols-2 gap-2">
           <Champ name="outils" placeholder="tools (facultatif)" />
           <Champ name="modele" placeholder="model (facultatif)" />
         </div>
-        <select name="portee" className="w-full rounded border border-bord bg-carte p-2 text-sm">
+        <select name="portee" className="field">
           <option value="utilisateur">portée utilisateur (~/.claude)</option>
           <option value="projet">portée projet (.claude du projet)</option>
         </select>
@@ -273,16 +273,16 @@ function CreationAgent() {
 
 function Carte({ titre, aide, children }: { titre: string; aide: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-bord bg-carte p-4">
+    <section className="card p-5">
       <h3 className="text-sm font-semibold">{titre}</h3>
-      <p className="mb-3 text-xs text-attenue">{aide}</p>
+      <p className="mb-3 text-xs text-muted">{aide}</p>
       {children}
     </section>
   );
 }
 
 function Champ(proprietes: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...proprietes} className="w-full rounded border border-bord bg-carte p-2 text-sm" />;
+  return <input {...proprietes} className="field" />;
 }
 
 interface ProprietesBouton {
@@ -299,7 +299,7 @@ function Bouton({ enCours, children, formAction, libelleEnCours }: ProprietesBou
       type="submit"
       formAction={formAction}
       disabled={enCours}
-      className="w-full rounded bg-encre px-3 py-1.5 text-sm font-medium text-fond disabled:opacity-40"
+      className="btn-primary w-full"
     >
       {enCours ? (libelleEnCours ?? "Écriture…") : children}
     </button>
@@ -316,7 +316,7 @@ function BoutonDestructif({ enCours, children, formAction }: ProprietesBouton) {
       type="submit"
       formAction={formAction}
       disabled={enCours}
-      className="w-full rounded border border-alerte/50 px-3 py-1.5 text-sm text-alerte disabled:opacity-40"
+      className="btn-danger w-full"
     >
       {enCours ? "Écriture…" : children}
     </button>
@@ -330,7 +330,7 @@ function BoutonSecond({ enCours, children, formAction }: ProprietesBouton) {
       type="submit"
       formAction={formAction}
       disabled={enCours}
-      className="w-full rounded border border-bord px-3 py-1.5 text-sm text-attenue disabled:opacity-40"
+      className="btn-secondary w-full"
     >
       {enCours ? "Écriture…" : children}
     </button>
@@ -342,7 +342,7 @@ function Message({ retour }: { retour: Retour }) {
   return (
     <p
       role={retour.etat === "refuse" ? "alert" : "status"}
-      className={`text-xs ${retour.etat === "fait" ? "text-calme" : "text-alerte"}`}
+      className={`text-xs ${retour.etat === "fait" ? "text-ink-soft" : "text-danger"}`}
     >
       {retour.message}
     </p>

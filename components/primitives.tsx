@@ -1,10 +1,10 @@
 import type { Portee, Silence } from "@/lib/types";
 
 const COULEUR_PORTEE: Record<Portee, string> = {
-  utilisateur: "bg-bord text-encre",
-  projet: "bg-calme/15 text-calme",
-  plugin: "bg-attenue/20 text-attenue",
-  intégré: "bg-attenue/20 text-attenue",
+  utilisateur: "border-line-strong text-ink-soft",
+  projet: "border-accent/40 text-ink",
+  plugin: "text-muted",
+  intégré: "text-muted",
 };
 
 /**
@@ -25,7 +25,7 @@ const SENS_PORTEE: Record<Portee, string> = {
 export function Pastille({ portee, origine }: { portee: Portee; origine: string }) {
   return (
     <span
-      className={`inline-flex max-w-[12rem] shrink-0 truncate rounded px-1.5 py-0.5 font-mono text-[11px] ${COULEUR_PORTEE[portee]}`}
+      className={`chip max-w-[14rem] shrink-0 truncate font-mono ${COULEUR_PORTEE[portee]}`}
       title={SENS_PORTEE[portee]}
     >
       {portee} · {origine}
@@ -52,17 +52,17 @@ export function Panneau({
   const ancre = titre.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "");
   return (
     <section id={ancre} className="mb-10 scroll-mt-4">
-      <h2 className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-bord pb-2 text-sm font-semibold tracking-wide uppercase">
+      <h2 className="surtitre mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
         {titre}
-        <span className="font-mono text-xs font-normal text-attenue">{compte}</span>
+        <span className="font-mono text-xs font-normal text-muted">{compte}</span>
         {ecarts ? (
-          <span className="font-mono text-xs font-normal text-alerte">
+          <span className="font-mono text-xs font-normal text-danger">
             dont {ecarts} sans effet
           </span>
         ) : null}
       </h2>
-      {intro && <p className="mb-3 max-w-prose text-xs text-attenue">{intro}</p>}
-      {compte === 0 ? <p className="text-sm text-attenue">{vide ?? "Rien ici."}</p> : children}
+      {intro && <p className="mb-3 max-w-prose text-xs text-muted">{intro}</p>}
+      {compte === 0 ? <p className="text-sm text-muted">{vide ?? "Rien ici."}</p> : children}
     </section>
   );
 }
@@ -74,7 +74,7 @@ export function Silences({ silences }: { silences: Silence[] }) {
       {silences.map((s, i) => (
         <li
           key={i}
-          className="rounded border border-alerte/40 bg-alerte-fond px-2 py-1 text-xs text-alerte"
+          className="rounded border border-danger/40 bg-danger-wash px-2 py-1 text-xs text-danger"
         >
           <strong className="font-semibold">{s.cause}</strong> — {s.detail}
         </li>
@@ -94,10 +94,10 @@ export function Entree({
   silences?: Silence[];
 }) {
   return (
-    <li className="border-b border-bord py-2 last:border-0">
+    <li className="border-b border-line py-2 last:border-0">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">{titre}</div>
       {description && (
-        <p className="mt-0.5 line-clamp-2 max-w-prose text-xs text-attenue" title={description}>
+        <p className="mt-0.5 line-clamp-2 max-w-prose text-xs text-muted" title={description}>
           {description}
         </p>
       )}
@@ -107,5 +107,5 @@ export function Entree({
 }
 
 export function Liste({ children }: { children: React.ReactNode }) {
-  return <ul className="rounded-lg border border-bord bg-carte px-4">{children}</ul>;
+  return <ul className="card px-4">{children}</ul>;
 }

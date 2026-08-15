@@ -23,9 +23,9 @@ export function Dock() {
   const chemin = usePathname();
 
   return (
-    <header className="sticky top-0 z-20 -mx-4 mb-6 border-b border-bord bg-fond/95 px-4 backdrop-blur sm:-mx-6 sm:px-6">
+    <header className="sticky top-0 z-20 -mx-4 mb-8 border-b border-line bg-paper/90 px-4 backdrop-blur sm:-mx-6 sm:px-6">
       <nav aria-label="Sections" className="flex items-center gap-1 overflow-x-auto py-2">
-        <Link href="/" className="mr-3 shrink-0 text-sm font-semibold whitespace-nowrap">
+        <Link href="/" className="mr-4 shrink-0 font-display text-lg whitespace-nowrap">
           Atelier Claude
         </Link>
         {ENTREES.map((e) => {
@@ -35,8 +35,8 @@ export function Dock() {
               key={e.href}
               href={e.href}
               aria-current={actif ? "page" : undefined}
-              className={`shrink-0 rounded px-2.5 py-1 text-xs whitespace-nowrap ${
-                actif ? "bg-encre text-fond" : "text-attenue hover:bg-bord"
+              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
+                actif ? "bg-accent text-paper" : "text-muted hover:bg-accent-wash hover:text-ink"
               }`}
             >
               {e.libelle}

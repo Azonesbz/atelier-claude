@@ -60,7 +60,7 @@ export function Inventaire({
             value={filtre}
             onChange={(e) => setFiltre(e.target.value)}
             placeholder="Filtrer par nom, description ou provenance…"
-            className="w-full rounded border border-bord bg-carte px-3 py-2 text-sm"
+            className="field"
           />
         </label>
         <label className="flex shrink-0 items-center gap-2 text-xs">
@@ -91,11 +91,11 @@ export function Inventaire({
                 <>
                   <span className="font-medium">{p.identifiant}</span>
                   <span
-                    className={`font-mono text-[11px] ${p.present ? "text-calme" : "text-alerte"}`}
+                    className={`font-mono text-[11px] ${p.present ? "text-ink-soft" : "text-danger"}`}
                   >
                     {p.present ? "chargé" : "absent du disque"}
                   </span>
-                  <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-attenue">
+                  <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted">
                     {p.cheminInstallation}
                   </span>
                 </>
@@ -107,20 +107,20 @@ export function Inventaire({
       )}
 
       {montre("plugins") && !projetSeul && atelier.catalogue.length > 0 && (
-        <details className="mb-10 rounded-lg border border-bord bg-carte px-4 py-3">
+        <details className="card mb-10 px-5 py-4">
           <summary className="cursor-pointer text-sm font-semibold">
             Au catalogue, non activés — {atelier.catalogue.length}
           </summary>
-          <p className="mt-2 max-w-prose text-xs text-attenue">
+          <p className="mt-2 max-w-prose text-xs text-muted">
             Ces plugins sont téléchargés sur ton disque mais absents de{" "}
             <code>enabledPlugins</code> : rien de leur contenu ne charge. Ils ne comptent donc dans
             aucune liste ci-dessus.
           </p>
           <ul className="mt-2">
             {atelier.catalogue.map((p) => (
-              <li key={p.identifiant} className="border-b border-bord py-1.5 text-xs last:border-0">
+              <li key={p.identifiant} className="border-b border-line py-1.5 text-xs last:border-0">
                 <span className="font-mono">{p.identifiant}</span>{" "}
-                <span className="text-attenue">
+                <span className="text-muted">
                   {p.competences} compétences · {p.agents} agents · {p.commandes} commandes
                 </span>
               </li>
@@ -150,7 +150,7 @@ export function Inventaire({
                 <>
                   <Link
                     href={`/competence/${encodeURIComponent(c.chemin)}`}
-                    className="font-medium underline decoration-bord underline-offset-4 hover:decoration-encre"
+                    className="font-medium underline decoration-line underline-offset-4 hover:decoration-ink"
                   >
                     {c.nom}
                   </Link>
@@ -158,20 +158,20 @@ export function Inventaire({
                   {avecPlan.has(c.chemin) && (
                     <Link
                       href={`/workflow/${encodeURIComponent(c.chemin)}`}
-                      className="rounded bg-calme/15 px-1.5 py-0.5 font-mono text-[11px] text-calme underline-offset-2 hover:underline"
+                      className="rounded bg-accent-wash px-1.5 py-0.5 font-mono text-[11px] text-ink-soft underline-offset-2 hover:underline"
                     >
                       voir le plan
                     </Link>
                   )}
                   {!c.invocableParLeModele && (
                     <span
-                      className="font-mono text-[11px] text-attenue"
+                      className="font-mono text-[11px] text-muted"
                       title="disable-model-invocation: true — Claude ne la chargera jamais de lui-même. Elle ne part que si tu la tapes. C'est un choix, pas une panne."
                     >
                       lancée à la main seulement
                     </span>
                   )}
-                  <span className="ml-auto font-mono text-[11px] text-attenue">{c.lignes} lignes</span>
+                  <span className="ml-auto font-mono text-[11px] text-muted">{c.lignes} lignes</span>
                 </>
               }
             />
@@ -249,7 +249,7 @@ export function Inventaire({
                   <span className="font-medium">{h.evenement}</span>
                   <Pastille portee={h.portee} origine={h.origine} />
                   {h.matcher && (
-                    <span className="font-mono text-[11px] text-attenue">{h.matcher}</span>
+                    <span className="font-mono text-[11px] text-muted">{h.matcher}</span>
                   )}
                   <span className="min-w-0 flex-1 truncate font-mono text-[11px]">{h.commande}</span>
                 </>
@@ -274,7 +274,7 @@ export function Inventaire({
               titre={
                 <>
                   <span
-                    className={`font-mono text-[11px] ${r.decision === "deny" ? "text-alerte" : "text-attenue"}`}
+                    className={`font-mono text-[11px] ${r.decision === "deny" ? "text-danger" : "text-muted"}`}
                   >
                     {r.decision}
                   </span>
@@ -302,7 +302,7 @@ export function Inventaire({
               titre={
                 <>
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">{f.chemin}</span>
-                  <span className="font-mono text-[11px] text-attenue">
+                  <span className="font-mono text-[11px] text-muted">
                     {f.lignes} lignes · {f.octets} octets
                   </span>
                 </>

@@ -36,7 +36,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
     !enAvant || (enAvant.has(lien.extremites[0]) && enAvant.has(lien.extremites[1]));
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-bord bg-carte p-4">
+    <div className="card overflow-x-auto p-5">
       <svg
         viewBox={`-16 0 ${plan.largeur + 32} ${plan.hauteur}`}
         style={{ minWidth: plan.largeur + 32 }}
@@ -47,7 +47,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
       >
         <defs>
           <marker id="pointe" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-            <path d="M0,0 L8,4 L0,8 z" className="fill-attenue" />
+            <path d="M0,0 L8,4 L0,8 z" className="fill-muted" />
           </marker>
         </defs>
 
@@ -68,7 +68,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
             onBlur={() => setVise(null)}
           >
             {depart && (
-              <text x={x + 10} y={y - 12} className="fill-calme font-mono text-[11px]">
+              <text x={x + 10} y={y - 12} className="fill-ink-soft font-mono text-[11px]">
                 ▸ point de départ
               </text>
             )}
@@ -78,16 +78,16 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               width={BLOC.largeur}
               height={BLOC.hauteur}
               rx={8}
-              className={`fill-fond ${etape.present ? "stroke-bord" : "stroke-alerte"}`}
+              className={`fill-paper ${etape.present ? "stroke-line" : "stroke-danger"}`}
               strokeWidth={vise === id ? 2 : depart ? 2 : 1}
             />
-            <text x={x + 14} y={y + 24} className="fill-attenue font-mono text-[13px]">
+            <text x={x + 14} y={y + 24} className="fill-muted font-mono text-[13px]">
               {etape.numero}
             </text>
-            <text x={x + 44} y={y + 24} className="fill-encre text-[13px] font-medium">
+            <text x={x + 44} y={y + 24} className="fill-ink text-[13px] font-medium">
               {couper(etape.role, 42)}
             </text>
-            <text x={x + 44} y={y + 44} className="fill-attenue font-mono text-[11px]">
+            <text x={x + 44} y={y + 44} className="fill-muted font-mono text-[11px]">
               {etape.fichierDeclare} · {etape.present ? `${etape.lignes} l.` : "fichier absent"}
             </text>
             {etape.arretDur && (
@@ -95,7 +95,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
                 x={x + BLOC.largeur - 14}
                 y={y + 24}
                 textAnchor="end"
-                className="fill-alerte font-mono text-[11px]"
+                className="fill-danger font-mono text-[11px]"
               >
                 arrêt dur
               </text>
@@ -124,14 +124,14 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               strokeWidth={vise === satellite.id ? 2 : 1}
               className={
                 satellite.sorte === "agent"
-                  ? "fill-calme/15 stroke-calme/40"
-                  : "fill-attenue/10 stroke-attenue/40"
+                  ? "fill-ink-soft/15 stroke-ink-soft/40"
+                  : "fill-muted/10 stroke-muted/40"
               }
             />
             <text
               x={satellite.x + 14}
               y={satellite.y + 21}
-              className={`font-mono text-[12px] ${satellite.sorte === "agent" ? "fill-calme" : "fill-attenue"}`}
+              className={`font-mono text-[12px] ${satellite.sorte === "agent" ? "fill-ink-soft" : "fill-muted"}`}
             >
               {satellite.sorte === "competence" ? `/${satellite.nom}` : satellite.nom}
             </text>
@@ -139,7 +139,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               <text
                 x={satellite.x + SATELLITE.largeur + 10}
                 y={satellite.y + 21}
-                className="fill-attenue font-mono text-[11px]"
+                className="fill-muted font-mono text-[11px]"
               >
                 utilisé par {satellite.appelePar.length} étape
                 {satellite.appelePar.length > 1 ? "s" : ""}
@@ -163,7 +163,7 @@ function Trait({ lien, vif }: { lien: Lien; vif: boolean }) {
         x2={lien.vers.x}
         y2={lien.vers.y}
         opacity={opacite}
-        className="stroke-attenue transition-opacity"
+        className="stroke-muted transition-opacity"
         strokeWidth={1.5}
         strokeDasharray={lien.confirme ? undefined : "4 4"}
         markerEnd="url(#pointe)"
@@ -176,7 +176,7 @@ function Trait({ lien, vif }: { lien: Lien; vif: boolean }) {
     <path
       d={`M${lien.de.x},${lien.de.y} C${lien.de.x + courbure},${lien.de.y} ${lien.vers.x - courbure},${lien.vers.y} ${lien.vers.x},${lien.vers.y}`}
       opacity={opacite}
-      className="stroke-bord transition-opacity"
+      className="stroke-line transition-opacity"
       strokeWidth={vif ? 1.5 : 1}
       fill="none"
     />

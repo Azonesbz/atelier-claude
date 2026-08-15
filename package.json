@@ -11,6 +11,7 @@
     "test:hook": "python3 -m unittest discover -p 'test_*.py' -v"
   },
   "dependencies": {
+    "@next/font": "^14.2.15",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

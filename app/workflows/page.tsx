@@ -26,7 +26,7 @@ export default function Page() {
   return (
     <main>
       <h1 className="mb-1 text-2xl font-semibold">Workflows</h1>
-      <p className="mb-6 max-w-prose text-sm text-attenue">
+      <p className="mb-6 max-w-prose text-sm text-muted">
         Les compétences qui se déroulent en étapes numérotées. Une étape déclarée dont le fichier
         manque ne s&apos;exécutera jamais, et rien d&apos;autre ne le dit.
       </p>
@@ -48,23 +48,23 @@ export default function Page() {
                   <>
                     <Link
                       href={`/workflow/${encodeURIComponent(competence.chemin)}`}
-                      className="font-medium underline decoration-bord underline-offset-4 hover:decoration-encre"
+                      className="font-medium underline decoration-line underline-offset-4 hover:decoration-ink"
                     >
                       {competence.nom}
                     </Link>
                     <Pastille portee={competence.portee} origine={competence.origine} />
-                    <span className="font-mono text-[11px] text-attenue">
+                    <span className="font-mono text-[11px] text-muted">
                       {workflow.etapes.length} étapes · {arrets} arrêt{arrets > 1 ? "s" : ""} dur
                       {arrets > 1 ? "s" : ""}
                     </span>
                     {manquantes > 0 && (
-                      <span className="font-mono text-[11px] text-alerte">
+                      <span className="font-mono text-[11px] text-danger">
                         {manquantes} fichier{manquantes > 1 ? "s" : ""} manquant
                         {manquantes > 1 ? "s" : ""}
                       </span>
                     )}
                     {workflow.orphelins.length > 0 && (
-                      <span className="font-mono text-[11px] text-alerte">
+                      <span className="font-mono text-[11px] text-danger">
                         {workflow.orphelins.length} hors séquence
                       </span>
                     )}

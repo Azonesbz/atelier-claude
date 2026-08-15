@@ -36,6 +36,20 @@ de toute requête, et doivent voir exactement ce que la page affiche.
 
 `CLAUDE_CONFIG_DIR` vise un autre dossier personnel.
 
+## L'habillage
+
+Direction artistique noire, reprise du portfolio via `academie-ia-dev` — les
+mêmes jetons, les mêmes polices, les mêmes utilitaires. Trois principes :
+trois noirs séparés d'un ou deux pourcents, la profondeur par un filet de 1 px
+en blanc alpha plutôt que par une ombre, et **le blanc comme unique accent**.
+
+Elle est **sombre uniquement** : le thème clair qui existait ici a été retiré.
+Deux chartes valent moins qu'une.
+
+Outfit porte le texte, Pacifico ne sert qu'au nom. Les rayons suivent la
+surface — 6 px un contrôle, 8 px un bouton, 16 px une carte — et les filets ont
+deux forces : 12 % pour le décor, 35 % pour les champs, seuil WCAG 1.4.11.
+
 ## Les pages
 
 Un dock en haut, présent partout. L'outil tenait sur une seule page de sept

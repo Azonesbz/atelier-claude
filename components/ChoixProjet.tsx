@@ -26,7 +26,7 @@ export function ChoixProjet({
 
   if (impose) {
     return (
-      <p className="mt-3 text-xs text-attenue">
+      <p className="mt-3 text-xs text-muted">
         Projet imposé par <code>ATELIER_PROJET={impose}</code> — relance sans cette variable pour
         pouvoir en choisir un autre.
       </p>
@@ -35,7 +35,7 @@ export function ChoixProjet({
 
   return (
     <form action={action} className="mt-3 flex flex-wrap items-center gap-2">
-      <label className="text-xs text-attenue">
+      <label className="text-xs text-muted">
         <span className="sr-only">Projet à regarder</span>
         {/* `key` force le remontage après un changement : sur un <select> non
             contrôlé, React ne réapplique pas `defaultValue` au re-rendu, et le
@@ -44,7 +44,7 @@ export function ChoixProjet({
           key={actuel ?? "auto"}
           name="projet"
           defaultValue={actuel ?? ""}
-          className="max-w-[28rem] rounded border border-bord bg-carte px-2 py-1.5 font-mono text-xs"
+          className="max-w-[28rem] rounded border border-line bg-surface px-2 py-1.5 font-mono text-xs"
         >
           <option value="">— détecter depuis le dossier de lancement —</option>
           {connus.map((p) => (
@@ -60,14 +60,14 @@ export function ChoixProjet({
       <button
         type="submit"
         disabled={enCours}
-        className="rounded border border-bord px-3 py-1.5 text-xs disabled:opacity-40"
+        className="rounded border border-line px-3 py-1.5 text-xs disabled:opacity-40"
       >
         {enCours ? "Lecture…" : "Regarder ce projet"}
       </button>
       {retour.etat !== "vierge" && (
         <span
           role={retour.etat === "refuse" ? "alert" : "status"}
-          className={`text-xs ${retour.etat === "fait" ? "text-calme" : "text-alerte"}`}
+          className={`text-xs ${retour.etat === "fait" ? "text-ink-soft" : "text-danger"}`}
         >
           {retour.message}
         </span>

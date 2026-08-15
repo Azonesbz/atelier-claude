@@ -27,7 +27,7 @@ export function Formulaire({
       <input type="hidden" name="chemin" value={chemin} />
 
       {!modifiable && (
-        <p className="rounded border border-alerte/30 bg-alerte-fond px-3 py-2 text-sm text-alerte">
+        <p className="rounded border border-danger/30 bg-danger-wash px-3 py-2 text-sm text-danger">
           {raisonDuRefus}
         </p>
       )}
@@ -38,7 +38,7 @@ export function Formulaire({
           defaultValue={description}
           rows={3}
           disabled={!modifiable}
-          className="w-full rounded border border-bord bg-carte p-2 text-sm disabled:opacity-60"
+          className="field disabled:opacity-45"
         />
       </Champ>
 
@@ -47,7 +47,7 @@ export function Formulaire({
           name="argument-hint"
           defaultValue={indiceArgument}
           disabled={!modifiable}
-          className="w-full rounded border border-bord bg-carte p-2 font-mono text-sm disabled:opacity-60"
+          className="w-full rounded border border-line bg-surface p-2 font-mono text-sm disabled:opacity-60"
         />
       </Champ>
 
@@ -57,7 +57,7 @@ export function Formulaire({
           defaultValue={corps}
           rows={22}
           disabled={!modifiable}
-          className="w-full rounded border border-bord bg-carte p-3 font-mono text-xs leading-relaxed disabled:opacity-60"
+          className="field font-mono text-xs leading-relaxed disabled:opacity-45"
         />
       </Champ>
 
@@ -65,12 +65,12 @@ export function Formulaire({
         <button
           type="submit"
           disabled={!modifiable || enCours}
-          className="rounded bg-encre px-4 py-2 text-sm font-medium text-fond disabled:opacity-40"
+          className="rounded bg-accent px-4 py-2 text-sm font-medium text-paper disabled:opacity-40"
         >
           {enCours ? "Écriture…" : "Enregistrer"}
         </button>
         {retour.etat !== "vierge" && (
-          <span className={`text-sm ${retour.etat === "enregistre" ? "text-calme" : "text-alerte"}`}>
+          <span className={`text-sm ${retour.etat === "enregistre" ? "text-ink-soft" : "text-danger"}`}>
             {retour.message}
           </span>
         )}
@@ -91,7 +91,7 @@ function Champ({
   return (
     <label className="block">
       <span className="text-sm font-medium">{etiquette}</span>
-      <span className="mb-1 block text-xs text-attenue">{aide}</span>
+      <span className="mb-1 block text-xs text-muted">{aide}</span>
       {children}
     </label>
   );

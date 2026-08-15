@@ -17,7 +17,7 @@ export default async function Detail({ params }: { params: Promise<{ chemin: str
 
   return (
     <main>
-      <Link href="/" className="text-sm text-attenue underline-offset-2 hover:underline">
+      <Link href="/" className="text-sm text-muted underline-offset-2 hover:underline">
         ← toutes les compétences
       </Link>
 
@@ -26,10 +26,10 @@ export default async function Detail({ params }: { params: Promise<{ chemin: str
           {competence.nom}
           <Pastille portee={competence.portee} origine={competence.origine} />
           {!competence.invocableParLeModele && (
-            <span className="font-mono text-xs font-normal text-attenue">invisible du modèle</span>
+            <span className="font-mono text-xs font-normal text-muted">invisible du modèle</span>
           )}
         </h1>
-        <p className="mt-1 font-mono text-xs text-attenue">{competence.chemin}</p>
+        <p className="mt-1 font-mono text-xs text-muted">{competence.chemin}</p>
         <Silences silences={competence.silences} />
       </header>
 

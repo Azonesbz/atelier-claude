@@ -21,21 +21,21 @@ export default function Accueil() {
     <main>
       <header className="mb-8">
         <h1 className="text-2xl font-semibold">Atelier Claude</h1>
-        <p className="mt-2 max-w-prose text-sm text-attenue">
+        <p className="mt-2 max-w-prose text-sm text-muted">
           Cette page lit ton dossier <code>.claude</code> et cherche une seule chose : ce qui est{" "}
-          <strong className="font-semibold text-encre">présent mais sans effet</strong> — un plugin
+          <strong className="font-semibold text-ink">présent mais sans effet</strong> — un plugin
           déclaré dont le code a disparu, un agent sans description, un en-tête que Claude Code
           n&apos;arrive pas à lire. Rien n&apos;est deviné : chaque signalement vient d&apos;une
           règle vérifiable, écrite en rouge sous la ligne concernée.
         </p>
 
         <dl className="mt-4 grid gap-x-4 gap-y-1 font-mono text-[11px] sm:grid-cols-[auto_1fr]">
-          <dt className="text-attenue">Réglages personnels</dt>
+          <dt className="text-muted">Réglages personnels</dt>
           <dd className="truncate">{atelier.racineUtilisateur}</dd>
-          <dt className="text-attenue">Projet lu</dt>
+          <dt className="text-muted">Projet lu</dt>
           <dd className="truncate">
             {atelier.racineProjet ?? (
-              <span className="text-alerte">aucun — choisis-en un ci-dessous</span>
+              <span className="text-danger">aucun — choisis-en un ci-dessous</span>
             )}
           </dd>
         </dl>
@@ -48,16 +48,16 @@ export default function Accueil() {
 
         <p className="mt-4 text-sm">
           {lus === 0 ? (
-            <span className="text-alerte">
+            <span className="text-danger">
               Rien n&apos;a été lu. Vérifie que {atelier.racineUtilisateur} existe.
             </span>
           ) : sansEffet === 0 ? (
-            <span className="text-calme">
+            <span className="text-ink-soft">
               Tout ce qui est déclaré charge réellement. Les workflows se vérifient sur leur propre
               page.
             </span>
           ) : (
-            <span className="text-alerte">
+            <span className="text-danger">
               {sansEffet} élément{sansEffet > 1 ? "s" : ""} présent{sansEffet > 1 ? "s" : ""} mais
               sans effet — détail sous la ligne concernée.
             </span>
@@ -76,10 +76,10 @@ export default function Accueil() {
           <Link
             key={href as string}
             href={href as string}
-            className="rounded-lg border border-bord bg-carte px-4 py-3 hover:border-encre"
+            className="card px-5 py-4 transition-colors hover:border-accent/40"
           >
             <span className="block text-sm font-medium">{titre}</span>
-            <span className="font-mono text-[11px] text-attenue">{compte}</span>
+            <span className="font-mono text-[11px] text-muted">{compte}</span>
           </Link>
         ))}
       </nav>
