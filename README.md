@@ -110,6 +110,13 @@ La vue d'ensemble est un tableau de bord : le nombre d'éléments sans effet en
 tête, huit tuiles chiffrées, la liste de ce qui demande un coup d'œil, et la
 répartition de ce qui charge par provenance.
 
+Une case **« inclure les réglages personnels »** écarte tout ce qui vient de
+`~/.claude` — ses compétences, ses agents, ses hooks, ses permissions — pour ne
+garder que le projet et les plugins. Les deux résumés sont calculés au serveur
+et la case bascule de l'un à l'autre : compter les étapes mortes d'un workflow
+demande de lire les fichiers d'étapes sur le disque, et refaire ce calcul dans
+le navigateur fabriquerait une seconde vérité.
+
 Aucun graphique pour les compteurs : douze compétences et quarante règles de
 permission ne se comparent pas, ce sont des objets différents. La seule figure
 est la répartition par portée — une barre, trois pas de gris. Le validateur de
