@@ -12,6 +12,7 @@ import { basename, dirname, join } from "node:path";
 import { lireTexte } from "../lecture/fichiers.ts";
 import type { Workflow } from "../lecture/workflow.ts";
 import { cheminModifiable, doitEtreLibre, EcritureRefusee, ecrireAtomiquement, enSlug } from "./garde.ts";
+import { DIVERGENCE, empreinteDeFichiers } from "./empreinte.ts";
 
 export interface Convention {
   /** `steps` chez halo, `etapes` chez lancer. */
@@ -118,6 +119,61 @@ function avecLigneAjoutee(skill: string, numero: string, relatif: string, sortie
 
 const DOSSIER_RETIREES = "retirees";
 
+export interface DescriptionDuRetrait {
+  numero: string;
+  role: string;
+  /** Le fichier tel qu'il est aujourd'hui, en absolu. */
+  source: string;
+  /** Où il ira, en absolu. Null si le fichier est déjà absent. */
+  destination: string | null;
+  /** La ligne du tableau qui disparaîtra, mot pour mot. */
+  ligneTableau: string;
+  /** À reposter pour confirmer : lie ce qui est montré à ce qui sera écrit. */
+  empreinte: string;
+}
+
+/**
+ * Ce qui serait retiré, sans rien retirer.
+ *
+ * Le premier temps de la confirmation. Les chemins sont rendus en absolu :
+ * quelqu'un qui découvre l'outil doit voir le fichier qu'il vise, pas un nom
+ * relatif à un dossier qu'il ne connaît pas.
+ */
+export function decrireRetrait(
+  cheminSkill: string,
+  workflow: Workflow,
+  numero: string,
+): DescriptionDuRetrait {
+  const absolu = cheminModifiable(cheminSkill);
+  const etape = trouverEtape(workflow, numero);
+  const skill = lireTexte(absolu);
+  if (skill === null) throw new EcritureRefusee("Le SKILL.md est introuvable.");
+
+  const ligne = skill
+    .split("\n")
+    .find((l) => LIGNE_ETAPE.test(l) && l.includes(`\`${etape.fichierDeclare}\``));
+  if (!ligne) {
+    throw new EcritureRefusee(`La ligne de « ${etape.fichierDeclare} » est introuvable dans le tableau.`);
+  }
+
+  return {
+    numero: etape.numero,
+    role: etape.role,
+    source: etape.cheminAbsolu,
+    destination: etape.present
+      ? join(dirname(absolu), DOSSIER_RETIREES, basename(etape.cheminAbsolu))
+      : null,
+    ligneTableau: ligne.trim(),
+    empreinte: empreinteDeFichiers([absolu, etape.cheminAbsolu]),
+  };
+}
+
+function trouverEtape(workflow: Workflow, numero: string) {
+  const etape = workflow.etapes.find((e) => e.numero === numero);
+  if (!etape) throw new EcritureRefusee(`Aucune étape ${numero} dans ce workflow.`);
+  return etape;
+}
+
 /**
  * Retire une étape : la ligne quitte le tableau, le fichier quitte la séquence.
  *
@@ -128,10 +184,18 @@ const DOSSIER_RETIREES = "retirees";
  *
  * Rend le chemin où le fichier a été déplacé, ou null s'il n'existait pas.
  */
-export function retirerEtape(cheminSkill: string, workflow: Workflow, numero: string): string | null {
+export function retirerEtape(
+  cheminSkill: string,
+  workflow: Workflow,
+  numero: string,
+  empreinteAttendue?: string,
+): string | null {
   const absolu = cheminModifiable(cheminSkill);
-  const etape = workflow.etapes.find((e) => e.numero === numero);
-  if (!etape) throw new EcritureRefusee(`Aucune étape ${numero} dans ce workflow.`);
+  const etape = trouverEtape(workflow, numero);
+
+  if (empreinteAttendue && empreinteDeFichiers([absolu, etape.cheminAbsolu]) !== empreinteAttendue) {
+    throw new EcritureRefusee(DIVERGENCE);
+  }
 
   const skill = lireTexte(absolu);
   if (skill === null) throw new EcritureRefusee("Le SKILL.md est introuvable.");

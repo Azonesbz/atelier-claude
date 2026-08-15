@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { ajouterEtape, conventionDe, retirerEtape } from "./etape.ts";
+import { ajouterEtape, conventionDe, decrireRetrait, retirerEtape } from "./etape.ts";
 import type { EtapeWorkflow, Workflow } from "../lecture/workflow.ts";
 
 function etape(numero: string, fichier: string): EtapeWorkflow {
@@ -160,4 +160,52 @@ test("retirer une étape inconnue est refusé", () => {
 
   // Act & Assert
   assert.throws(() => retirerEtape(skill, workflow, "99"), /Aucune étape 99/);
+});
+
+test("la description dit ce qui partira, sans rien toucher", () => {
+  // Arrange
+  const { racine, skill, workflow } = atelierJetable("etapes", "etape");
+  const fichier = join(racine, "skills", "essai", "etapes", "etape-01-suite.md");
+  writeFileSync(fichier, "# Étape 01\n", "utf8");
+  const avant = readFileSync(skill, "utf8");
+
+  // Act
+  const description = decrireRetrait(skill, workflow, "01");
+
+  // Assert
+  assert.equal(description.source, fichier);
+  assert.ok(description.destination?.endsWith("retirees/etape-01-suite.md"));
+  assert.ok(description.ligneTableau.includes("etape-01-suite.md"));
+  assert.ok(description.empreinte.length > 0);
+  assert.equal(readFileSync(skill, "utf8"), avant, "rien n'a été écrit");
+  assert.ok(existsSync(fichier), "le fichier est toujours là");
+});
+
+test("un retrait confirmé sur un état périmé est refusé", () => {
+  // Arrange — une session touche au fichier entre les deux clics
+  const { racine, skill, workflow } = atelierJetable("etapes", "etape");
+  const fichier = join(racine, "skills", "essai", "etapes", "etape-01-suite.md");
+  writeFileSync(fichier, "# Étape 01\n", "utf8");
+  const description = decrireRetrait(skill, workflow, "01");
+  writeFileSync(fichier, "# Étape 01 — récrite entre-temps\n", "utf8");
+
+  // Act & Assert
+  assert.throws(() => retirerEtape(skill, workflow, "01", description.empreinte), /ont changé/i);
+  assert.ok(existsSync(fichier), "rien n'a bougé");
+  assert.ok(readFileSync(skill, "utf8").includes("etape-01-suite.md"), "le tableau est intact");
+});
+
+test("un retrait confirmé sur l'état montré passe", () => {
+  // Arrange
+  const { racine, skill, workflow } = atelierJetable("etapes", "etape");
+  const fichier = join(racine, "skills", "essai", "etapes", "etape-01-suite.md");
+  writeFileSync(fichier, "# Étape 01\n", "utf8");
+  const description = decrireRetrait(skill, workflow, "01");
+
+  // Act
+  const destination = retirerEtape(skill, workflow, "01", description.empreinte);
+
+  // Assert
+  assert.equal(destination, description.destination);
+  assert.equal(existsSync(fichier), false);
 });

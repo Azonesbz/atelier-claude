@@ -9,6 +9,7 @@ import {
   creer,
   debrancher,
   retirer,
+  verifierRetrait,
   type Retour,
 } from "./actions";
 
@@ -120,33 +121,72 @@ function Branchement({ etapes, agents }: { etapes: EtapeBranchable[]; agents: st
   );
 }
 
+/**
+ * Le retrait, en deux temps.
+ *
+ * Le premier montre le fichier visé et sa destination, en absolu, plus la
+ * ligne du tableau qui disparaîtra. Le second écrit — et refuse si les
+ * fichiers ont bougé entre-temps, grâce au jeton reposté.
+ */
 function RetraitEtape({ cheminSkill, etapes }: { cheminSkill: string; etapes: EtapeBranchable[] }) {
-  const [retour, action, enCours] = useActionState(retirer, VIERGE);
+  const [apercu, verifier, enCoursVoir] = useActionState(verifierRetrait, VIERGE);
+  const [ecriture, appliquer, enCoursEcrire] = useActionState(retirer, VIERGE);
+  const [numero, setNumero] = useState("");
+  const dernier = ecriture.etat !== "vierge" ? ecriture : apercu;
+  const aConfirmer = apercu.etat === "fait" && apercu.empreinte && ecriture.etat !== "fait";
+
   return (
     <Carte
       titre="Retirer une étape"
-      aide="La ligne quitte le tableau et le fichier part dans retirees/, à côté. Rien n'est effacé."
+      aide="La ligne quitte le tableau et le fichier part dans retirees/, à côté. Rien n'est effacé, et rien n'est écrit avant confirmation."
     >
-      <form action={action} className="space-y-2">
-        <input type="hidden" name="skill" value={cheminSkill} />
-        <select
-          name="numero"
-          defaultValue=""
-          className="w-full rounded border border-bord bg-carte p-2 text-sm"
-        >
-          <option value="" disabled>
-            choisir l&apos;étape à retirer…
-          </option>
-          {etapes.map((e) => (
-            <option key={e.chemin} value={e.numero}>
-              {e.numero} · {e.role}
-              {e.present ? "" : " (fichier déjà absent)"}
+      <div className="space-y-2">
+        <form action={verifier} className="space-y-2">
+          <input type="hidden" name="skill" value={cheminSkill} />
+          <select
+            name="numero"
+            value={numero}
+            onChange={(e) => setNumero(e.target.value)}
+            className="w-full rounded border border-bord bg-carte p-2 text-sm"
+          >
+            <option value="" disabled>
+              choisir l&apos;étape à retirer…
             </option>
-          ))}
-        </select>
-        <BoutonDestructif enCours={enCours}>Retirer de la séquence</BoutonDestructif>
-        <Message retour={retour} />
-      </form>
+            {etapes.map((e) => (
+              <option key={e.chemin} value={e.numero}>
+                {e.numero} · {e.role}
+                {e.present ? "" : " (fichier déjà absent)"}
+              </option>
+            ))}
+          </select>
+          <Bouton enCours={enCoursVoir} libelleEnCours="Lecture…">
+            Vérifier ce qui partira
+          </Bouton>
+        </form>
+
+        {dernier.details && (
+          <ul className="overflow-x-auto rounded border border-bord p-2 font-mono text-[10px] leading-relaxed text-attenue">
+            {dernier.details.map((ligne, i) => (
+              <li key={i} className="whitespace-nowrap">
+                {ligne}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Message retour={dernier} />
+
+        {aConfirmer && (
+          <form action={appliquer}>
+            <input type="hidden" name="skill" value={cheminSkill} />
+            <input type="hidden" name="numero" value={numero} />
+            <input type="hidden" name="empreinte" value={apercu.empreinte} />
+            <BoutonDestructif enCours={enCoursEcrire}>
+              Confirmer le retrait de l&apos;étape {numero}
+            </BoutonDestructif>
+          </form>
+        )}
+      </div>
     </Carte>
   );
 }
@@ -194,6 +234,7 @@ function Renumerotation({ cheminSkill }: { cheminSkill: string }) {
         {aMontrer && !dejaEcrit && (
           <form action={appliquer}>
             <input type="hidden" name="skill" value={cheminSkill} />
+            <input type="hidden" name="empreinte" value={apercu.empreinte ?? ""} />
             <BoutonSecond enCours={enCoursEcrire}>Appliquer la renumérotation</BoutonSecond>
           </form>
         )}

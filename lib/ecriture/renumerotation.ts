@@ -20,6 +20,7 @@ import { basename, dirname, join } from "node:path";
 import { lireTexte } from "../lecture/fichiers.ts";
 import type { Workflow } from "../lecture/workflow.ts";
 import { cheminModifiable, EcritureRefusee, ecrireAtomiquement } from "./garde.ts";
+import { DIVERGENCE, empreinte } from "./empreinte.ts";
 import { conventionDe } from "./etape.ts";
 
 export interface Deplacement {
@@ -41,6 +42,19 @@ export interface Occurrence {
 export interface PlanRenumerotation {
   deplacements: Deplacement[];
   occurrences: Occurrence[];
+}
+
+/**
+ * L'empreinte d'un plan : les renommages ET chaque ligne réécrite.
+ *
+ * Prendre les seuls renommages ne suffirait pas — une étape peut changer de
+ * contenu sans changer de numéro, et l'aperçu montre ce contenu.
+ */
+export function empreinteDuPlan(plan: PlanRenumerotation): string {
+  return empreinte([
+    ...plan.deplacements.map((d) => `${d.ancienRelatif}>${d.nouveauRelatif}`),
+    ...plan.occurrences.map((o) => `${o.fichier}:${o.ligne}:${o.apres}`),
+  ]);
 }
 
 /** Le plan complet, sans rien écrire. Un plan vide veut dire « rien à faire ». */
@@ -154,10 +168,17 @@ function reecrireLaLigne(
  * Les renommages passent par un nom provisoire. Sans cela, renommer 04 en 03
  * écraserait le fichier 03 qui n'a pas encore bougé.
  */
-export function appliquerRenumerotation(cheminSkill: string, workflow: Workflow): PlanRenumerotation {
+export function appliquerRenumerotation(
+  cheminSkill: string,
+  workflow: Workflow,
+  empreinteAttendue?: string,
+): PlanRenumerotation {
   const plan = planifierRenumerotation(cheminSkill, workflow);
   if (plan.deplacements.length === 0) {
     throw new EcritureRefusee("La numérotation est déjà continue : rien à faire.");
+  }
+  if (empreinteAttendue && empreinteDuPlan(plan) !== empreinteAttendue) {
+    throw new EcritureRefusee(DIVERGENCE);
   }
 
   const provisoires = plan.deplacements

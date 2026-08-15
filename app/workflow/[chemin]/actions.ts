@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { brancherAgent, creerAgent, debrancherAgent } from "@/lib/ecriture/agent";
-import { ajouterEtape, retirerEtape } from "@/lib/ecriture/etape";
+import { ajouterEtape, decrireRetrait, retirerEtape } from "@/lib/ecriture/etape";
 import {
   appliquerRenumerotation,
+  empreinteDuPlan,
   planifierRenumerotation,
   type PlanRenumerotation,
 } from "@/lib/ecriture/renumerotation";
@@ -17,6 +18,14 @@ export interface Retour {
   message: string;
   /** Le détail ligne à ligne, pour ce qui se montre avant de s'écrire. */
   details?: string[];
+  /**
+   * Le jeton qui lie ce qui est montré à ce qui sera écrit.
+   *
+   * Reposté au second clic, il fait refuser l'écriture si les fichiers ont
+   * bougé entre-temps. Sans lui, « ça se montre avant de s'écrire » était une
+   * promesse invérifiable : les deux clics relisent le disque séparément.
+   */
+  empreinte?: string;
 }
 
 /** Relit le workflow depuis le disque : l'état du formulaire ne fait pas foi. */
@@ -92,12 +101,38 @@ export async function debrancher(_precedent: Retour, formulaire: FormData): Prom
   });
 }
 
+export async function verifierRetrait(_precedent: Retour, formulaire: FormData): Promise<Retour> {
+  const cheminSkill = String(formulaire.get("skill") ?? "");
+  const numero = String(formulaire.get("numero") ?? "");
+  if (!numero) return { etat: "refuse", message: "Choisis d'abord l'étape à retirer." };
+  try {
+    const d = decrireRetrait(cheminSkill, relire(cheminSkill), numero);
+    return {
+      etat: "fait",
+      message: `Étape ${d.numero} — ${d.role}. Rien n'est encore écrit.`,
+      details: [
+        `ligne retirée du tableau :  ${d.ligneTableau}`,
+        `fichier déplacé depuis   :  ${d.source}`,
+        `vers                     :  ${d.destination ?? "(le fichier est déjà absent)"}`,
+      ],
+      empreinte: d.empreinte,
+    };
+  } catch (erreur) {
+    return { etat: "refuse", message: erreur instanceof Error ? erreur.message : "Refusé." };
+  }
+}
+
 export async function retirer(_precedent: Retour, formulaire: FormData): Promise<Retour> {
   return aboutir(() => {
     const cheminSkill = String(formulaire.get("skill") ?? "");
     const numero = String(formulaire.get("numero") ?? "");
     if (!numero) throw new Error("Choisis d'abord l'étape à retirer.");
-    const destination = retirerEtape(cheminSkill, relire(cheminSkill), numero);
+    const destination = retirerEtape(
+      cheminSkill,
+      relire(cheminSkill),
+      numero,
+      String(formulaire.get("empreinte") ?? "") || undefined,
+    );
     return destination
       ? `Retirée. Le fichier est dans ${destination.split("/").slice(-2).join("/")}.`
       : "Ligne retirée du tableau. Le fichier était déjà absent.";
@@ -112,6 +147,7 @@ export async function retirer(_precedent: Retour, formulaire: FormData): Promise
  * se lit mieux : l'une montre, l'autre écrit.
  */
 function rendre(plan: PlanRenumerotation, ecrit: boolean): Retour {
+  const jeton = empreinteDuPlan(plan);
   if (plan.deplacements.length === 0) {
     return { etat: "fait", message: "La numérotation est déjà continue : rien à faire." };
   }
@@ -125,6 +161,7 @@ function rendre(plan: PlanRenumerotation, ecrit: boolean): Retour {
       ? `${plan.deplacements.length} étapes renumérotées, ${plan.occurrences.length} lignes réécrites.`
       : `${plan.deplacements.length} étapes à renuméroter, ${plan.occurrences.length} lignes à réécrire. Rien n'est encore écrit.`,
     details: [...renommages, ...lignes],
+    empreinte: jeton,
   };
 }
 
@@ -143,7 +180,11 @@ export async function appliquerRenumerotationAction(
 ): Promise<Retour> {
   const cheminSkill = String(formulaire.get("skill") ?? "");
   try {
-    const plan = appliquerRenumerotation(cheminSkill, relire(cheminSkill));
+    const plan = appliquerRenumerotation(
+      cheminSkill,
+      relire(cheminSkill),
+      String(formulaire.get("empreinte") ?? "") || undefined,
+    );
     revalidatePath("/", "layout");
     return rendre(plan, true);
   } catch (erreur) {

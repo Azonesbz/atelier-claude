@@ -10,7 +10,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { appliquerRenumerotation, planifierRenumerotation } from "./renumerotation.ts";
+import {
+  appliquerRenumerotation,
+  empreinteDuPlan,
+  planifierRenumerotation,
+} from "./renumerotation.ts";
 import type { EtapeWorkflow, Workflow } from "../lecture/workflow.ts";
 
 /** Un workflow à trou : 00, 01, 03, 04 — l'étape 02 a été retirée. */
@@ -148,4 +152,29 @@ test("une numérotation déjà continue est refusée plutôt que réécrite", ()
   // Act & Assert
   assert.throws(() => appliquerRenumerotation(skill, workflow), /déjà continue/);
   assert.equal(readFileSync(skill, "utf8"), apres, "rien n'a été réécrit");
+});
+
+test("appliquer sur un plan périmé est refusé, rien n'est renommé", () => {
+  // Arrange — l'aperçu est pris, puis une session ajoute une ligne à une étape
+  const { skill, dossier, workflow } = atelierATrou();
+  const empreinteMontree = empreinteDuPlan(planifierRenumerotation(skill, workflow));
+  writeFileSync(join(dossier, "step-03-execute.md"), "# Étape 03 — execute\n\nRécrit ailleurs.\n", "utf8");
+
+  // Act & Assert
+  assert.throws(() => appliquerRenumerotation(skill, workflow, empreinteMontree), /ont changé/i);
+  assert.ok(existsSync(join(dossier, "step-03-execute.md")), "aucun renommage");
+  assert.equal(existsSync(join(dossier, "step-02-execute.md")), false);
+  assert.ok(readFileSync(skill, "utf8").includes("step-03-execute.md"), "le tableau est intact");
+});
+
+test("appliquer sur le plan montré passe", () => {
+  // Arrange
+  const { skill, dossier, workflow } = atelierATrou();
+  const empreinteMontree = empreinteDuPlan(planifierRenumerotation(skill, workflow));
+
+  // Act
+  appliquerRenumerotation(skill, workflow, empreinteMontree);
+
+  // Assert
+  assert.ok(existsSync(join(dossier, "step-02-execute.md")));
 });

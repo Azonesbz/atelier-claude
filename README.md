@@ -97,7 +97,7 @@ sur trente-cinq ici. Les autres s'organisent autrement, et rien n'est deviné.
 | Geste | Ce qui est écrit |
 | --- | --- |
 | Ajouter une étape | le fichier d'étape **et** sa ligne dans le tableau — les deux, ou rien |
-| Retirer une étape | la ligne quitte le tableau, le fichier part dans `retirees/` |
+| Retirer une étape | la ligne quitte le tableau, le fichier part dans `retirees/` — **en deux temps** |
 | Renuméroter la séquence | les fichiers, le tableau, les titres et **tous les renvois** |
 | Brancher un sous-agent | une puce dans la section `## Sous-agents` de l'étape |
 | Débrancher un sous-agent | la puce est retirée, et la section avec elle si elle se vide |
@@ -132,6 +132,22 @@ Deux pièges, tous deux traités : une substitution séquentielle 04→03 puis 0
 seule expression** et remplacés d'un coup ; et renommer 04 en 03 écraserait le
 fichier 03 s'il n'avait pas encore bougé, donc les renommages passent par un
 nom provisoire.
+
+**Les deux gestes qui enlèvent le plus se confirment en deux temps** : retirer
+une étape, et renuméroter. Le premier clic ne fait que montrer — pour un
+retrait, la ligne exacte du tableau qui disparaîtra, le fichier visé et sa
+destination, **en chemins absolus**. Le second écrit.
+
+Entre les deux, un jeton lie ce qui a été montré à ce qui sera écrit :
+l'empreinte des fichiers concernés (taille et date) pour le retrait, celle du
+plan complet pour la renumérotation. Si une session a touché aux fichiers
+entre-temps, l'écriture est refusée — « Les fichiers ont changé depuis
+l'aperçu ». Sans ce jeton, les deux clics relisaient le disque séparément et la
+promesse « ça se montre avant de s'écrire » était invérifiable.
+
+Ce n'est pas un verrou : deux écritures simultanées restent possibles. C'est la
+garantie de ne jamais écrire sur un état qu'on n'a pas montré, ce qui est la
+seule chose promise.
 
 Retirer une étape **n'efface rien**. La ligne quitte le tableau et le fichier
 est déplacé dans un dossier `retirees/` voisin — hors du dossier d'étapes, donc
@@ -186,7 +202,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Cinquante-neuf tests TypeScript, huit Python. Les cas les plus utiles sont des
+Soixante-quatre tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
@@ -196,7 +212,7 @@ modification d'une autre ligne, et le refus d'écrire dans un plugin.
 | --- | --- |
 | `lib/lecture/` | Lire le disque : `fichiers`, `competences`, `documents`, `reglages`, `plugins`, `workflow`, `atelier` |
 | `lib/plan.ts` | La mise en plan d'un workflow : positions déterministes |
-| `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `frontmatter`, `competence`, `etape`, `agent`, `renumerotation` |
+| `lib/ecriture/` | Écrire sans casser : `garde` (les refus partagés), `empreinte` (le lien montré/écrit), `frontmatter`, `competence`, `etape`, `agent`, `renumerotation` |
 | `app/` | L'interface : liste, détail modifiable, plan de workflow |
 | `hook.py`, `ecart.py`, `lecture.py`, `message.py` | Le hook de veille, indépendant du web |
 
