@@ -1,6 +1,5 @@
 import { ChoixProjet } from "@/components/ChoixProjet";
-import { Inventaire } from "@/components/Inventaire";
-import { Veille } from "@/components/Veille";
+import Link from "next/link";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireChoix } from "@/lib/lecture/choix";
 import { listerProjetsConnus } from "@/lib/lecture/projets";
@@ -66,12 +65,24 @@ export default function Accueil() {
         </p>
       </header>
 
-      <Inventaire
-        atelier={atelier}
-        aDesEtapes={atelier.competences.filter((c) => aDesEtapes(c.corps)).map((c) => c.chemin)}
-      />
-
-      <Veille veille={veille} />
+      <nav className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          ["/competences", "Compétences", atelier.competences.length],
+          ["/workflows", "Workflows", atelier.competences.filter((c) => aDesEtapes(c.corps)).length],
+          ["/agents", "Agents et commandes", atelier.agents.length + atelier.commandes.length],
+          ["/reglages", "Réglages", atelier.hooks.length + atelier.permissions.length + atelier.plugins.length],
+          ["/veille", "Veille au démarrage", veille.installe ? "en place" : "à installer"],
+        ].map(([href, titre, compte]) => (
+          <Link
+            key={href as string}
+            href={href as string}
+            className="rounded-lg border border-bord bg-carte px-4 py-3 hover:border-encre"
+          >
+            <span className="block text-sm font-medium">{titre}</span>
+            <span className="font-mono text-[11px] text-attenue">{compte}</span>
+          </Link>
+        ))}
+      </nav>
     </main>
   );
 }

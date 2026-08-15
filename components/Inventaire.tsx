@@ -12,18 +12,43 @@ import type { Atelier } from "@/lib/types";
  * rendues côté serveur, ça suffit, et ça évite d'introduire une navigation où
  * se perdre.
  */
-export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtapes: string[] }) {
+export type Section =
+  | "plugins"
+  | "competences"
+  | "agents"
+  | "commandes"
+  | "hooks"
+  | "permissions"
+  | "instructions";
+
+export function Inventaire({
+  atelier,
+  aDesEtapes,
+  sections,
+}: {
+  atelier: Atelier;
+  aDesEtapes: string[];
+  /** Les panneaux à rendre. Chaque route n'en montre que les siens. */
+  sections: Section[];
+}) {
+  const montre = (s: Section) => sections.includes(s);
   const [filtre, setFiltre] = useState("");
+  const [projetSeul, setProjetSeul] = useState(false);
   const avecPlan = useMemo(() => new Set(aDesEtapes), [aDesEtapes]);
   const garde = (...champs: Array<string | undefined>) =>
     filtre.trim() === "" ||
     champs.some((c) => (c ?? "").toLowerCase().includes(filtre.trim().toLowerCase()));
 
-  const competences = atelier.competences.filter((c) => garde(c.nom, c.description, c.origine));
-  const agents = atelier.agents.filter((a) => garde(a.nom, a.description, a.origine));
-  const commandes = atelier.commandes.filter((c) => garde(c.nom, c.description, c.origine));
-  const hooks = atelier.hooks.filter((h) => garde(h.evenement, h.commande, h.matcher));
-  const permissions = atelier.permissions.filter((r) => garde(r.motif, r.decision, r.origine));
+  /** « Ce projet seulement » écarte tout ce qui ne vient pas de son .claude. */
+  const duProjet = (portee: string) => !projetSeul || portee === "projet";
+
+  const competences = atelier.competences.filter((c) => duProjet(c.portee) && garde(c.nom, c.description, c.origine));
+  const agents = atelier.agents.filter((a) => duProjet(a.portee) && garde(a.nom, a.description, a.origine));
+  const commandes = atelier.commandes.filter((c) => duProjet(c.portee) && garde(c.nom, c.description, c.origine));
+  const hooks = atelier.hooks.filter((h) => duProjet(h.portee) && garde(h.evenement, h.commande, h.matcher));
+  const permissions = atelier.permissions.filter((r) => duProjet(r.portee) && garde(r.motif, r.decision, r.origine));
+  const plugins = projetSeul ? [] : atelier.plugins;
+  const instructions = atelier.instructions.filter((f) => duProjet(f.portee));
 
   return (
     <>
@@ -38,24 +63,27 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
             className="w-full rounded border border-bord bg-carte px-3 py-2 text-sm"
           />
         </label>
-        <nav className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] text-attenue">
-          {["plugins", "comptences", "agents", "commandes", "hooks", "permissions"].map((a, i) => (
-            <a key={a} href={`#${a}`} className="underline-offset-2 hover:underline">
-              {["plugins", "compétences", "agents", "commandes", "hooks", "permissions"][i]}
-            </a>
-          ))}
-        </nav>
+        <label className="flex shrink-0 items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={projetSeul}
+            onChange={(e) => setProjetSeul(e.target.checked)}
+            className="h-4 w-4"
+          />
+          ce projet seulement
+        </label>
       </div>
 
+      {montre("plugins") && (
       <Panneau
         titre="Plugins"
-        compte={atelier.plugins.length}
-        ecarts={atelier.plugins.filter((p) => p.silences.length).length}
+        compte={plugins.length}
+        ecarts={plugins.filter((p) => p.silences.length).length}
         intro="Un plugin apporte des compétences, des agents et des commandes d'un coup. C'est lui qui explique la provenance de tout le reste."
-        vide="Aucun plugin activé dans tes réglages."
+        vide={projetSeul ? "Les plugins viennent de ~/.claude — masqués par « ce projet seulement »." : "Aucun plugin activé dans tes réglages."}
       >
         <Liste>
-          {atelier.plugins.map((p) => (
+          {plugins.map((p) => (
             <Entree
               key={p.identifiant + p.cheminInstallation}
               silences={p.silences}
@@ -76,8 +104,9 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
-      {atelier.catalogue.length > 0 && (
+      {montre("plugins") && !projetSeul && atelier.catalogue.length > 0 && (
         <details className="mb-10 rounded-lg border border-bord bg-carte px-4 py-3">
           <summary className="cursor-pointer text-sm font-semibold">
             Au catalogue, non activés — {atelier.catalogue.length}
@@ -100,11 +129,16 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
         </details>
       )}
 
+      {montre("competences") && (
       <Panneau
         titre="Compétences"
         compte={competences.length}
         ecarts={competences.filter((c) => c.silences.length).length}
-        vide={`Aucune compétence dans ${atelier.racineUtilisateur}/skills${atelier.racineProjet ? ` ni ${atelier.racineProjet}/skills` : ""}.`}
+        vide={
+          projetSeul
+            ? `Aucune compétence dans ${atelier.racineProjet ?? "ce projet"}/skills.`
+            : `Aucune compétence dans ${atelier.racineUtilisateur}/skills${atelier.racineProjet ? ` ni ${atelier.racineProjet}/skills` : ""}.`
+        }
       >
         <Liste>
           {competences.map((c) => (
@@ -144,7 +178,9 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
+      {montre("agents") && (
       <Panneau
         titre="Agents"
         compte={agents.length}
@@ -168,7 +204,9 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
+      {montre("commandes") && (
       <Panneau
         titre="Commandes"
         compte={commandes.length}
@@ -191,7 +229,9 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
+      {montre("hooks") && (
       <Panneau
         titre="Hooks"
         compte={hooks.length}
@@ -218,7 +258,9 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
+      {montre("permissions") && (
       <Panneau
         titre="Permissions"
         compte={permissions.length}
@@ -244,15 +286,17 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
 
+      {montre("instructions") && (
       <Panneau
         titre="Instructions"
-        compte={atelier.instructions.length}
+        compte={instructions.length}
         intro="Les fichiers CLAUDE.md chargés à chaque session."
-        vide="Aucun CLAUDE.md trouvé."
+        vide={projetSeul ? "Aucun CLAUDE.md dans ce projet." : "Aucun CLAUDE.md trouvé."}
       >
         <Liste>
-          {atelier.instructions.map((f) => (
+          {instructions.map((f) => (
             <Entree
               key={f.chemin}
               titre={
@@ -267,6 +311,7 @@ export function Inventaire({ atelier, aDesEtapes }: { atelier: Atelier; aDesEtap
           ))}
         </Liste>
       </Panneau>
+      )}
     </>
   );
 }

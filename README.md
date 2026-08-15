@@ -36,6 +36,24 @@ de toute requête, et doivent voir exactement ce que la page affiche.
 
 `CLAUDE_CONFIG_DIR` vise un autre dossier personnel.
 
+## Les pages
+
+Un dock en haut, présent partout. L'outil tenait sur une seule page de sept
+mille pixels — on savait où on était parce qu'il n'y avait qu'un endroit.
+
+| Page | Ce qu'on y trouve |
+| --- | --- |
+| Vue d'ensemble | le verdict, les dossiers lus, le choix du projet |
+| Compétences | la liste, et le détail modifiable |
+| Workflows | les compétences qui se déroulent en étapes, et leur plan |
+| Agents | agents et commandes |
+| Réglages | plugins, hooks, permissions, instructions |
+| Veille | le hook de démarrage et son bloc à coller |
+
+Sur les pages de liste, une case **« ce projet seulement »** masque tout ce qui
+ne vient pas du `.claude` du projet choisi — le personnel, les plugins, le
+catalogue. Utile quand on regarde le dossier de quelqu'un d'autre.
+
 ## Ce que ça montre
 
 Tout ce qui est chargé, avec sa provenance : compétences, agents, commandes,
@@ -236,7 +254,7 @@ ce qu'elle prétend mesurer.
 npm test && npm run test:hook
 ```
 
-Soixante-huit tests TypeScript, huit Python. Les cas les plus utiles sont des
+Soixante-dix tests TypeScript, huit Python. Les cas les plus utiles sont des
 régressions payées : la ligne de `halo` qui doit ressortir intacte après
 modification d'une autre ligne, et le refus d'écrire dans un plugin.
 
