@@ -15,7 +15,10 @@ import type { Workflow } from "@/lib/lecture/workflow";
  * Le focus déclenche la même chose que le survol. Un plan qui ne se lit qu'à
  * la souris ne se lit pas au clavier, et les blocs sont déjà des cibles.
  */
-const ESTOMPE = 0.22;
+/* 0,22 suffisait sur l'ancienne palette ; sur la charte noire — surface #111
+   sur fond #0a0a0a — le texte estompé devenait illisible plutôt que
+   recessif, et le plan semblait coupé net sous l'élément survolé. */
+const ESTOMPE = 0.42;
 /** Assez court pour suivre la souris, assez long pour que le fond ne clignote pas. */
 const FONDU = "opacity 120ms ease, stroke-width 120ms ease";
 
