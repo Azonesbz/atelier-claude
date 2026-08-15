@@ -16,6 +16,8 @@ import type { Workflow } from "@/lib/lecture/workflow";
  * la souris ne se lit pas au clavier, et les blocs sont déjà des cibles.
  */
 const ESTOMPE = 0.22;
+/** Assez court pour suivre la souris, assez long pour que le fond ne clignote pas. */
+const FONDU = "opacity 120ms ease, stroke-width 120ms ease";
 
 export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
   const plan = useMemo(() => mettreEnPlan(workflow), [workflow]);
@@ -51,6 +53,18 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
           </marker>
         </defs>
 
+        {/* Le fond rend la main. Sans lui, quitter un bloc pour la toile
+            laissait la surbrillance collée : c'est ce qui donnait l'impression
+            d'un bug. Il est premier, donc derrière tout le reste. */}
+        <rect
+          x={-16}
+          y={0}
+          width={plan.largeur + 32}
+          height={plan.hauteur}
+          fill="transparent"
+          onMouseEnter={() => setVise(null)}
+        />
+
         {plan.liens.map((lien, i) => (
           <Trait key={i} lien={lien} vif={vifLien(lien)} />
         ))}
@@ -61,8 +75,8 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
             tabIndex={0}
             role="listitem"
             aria-label={`Étape ${etape.numero} — ${etape.role}${appelle.length ? `, appelle ${appelle.length} élément(s)` : ""}`}
-            opacity={vif(id) ? 1 : ESTOMPE}
-            className="cursor-default transition-opacity"
+            style={{ opacity: vif(id) ? 1 : ESTOMPE, transition: FONDU }}
+            className="cursor-default"
             onMouseEnter={() => setVise(id)}
             onFocus={() => setVise(id)}
             onBlur={() => setVise(null)}
@@ -79,7 +93,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               height={BLOC.hauteur}
               rx={8}
               className={`fill-paper ${etape.present ? "stroke-line" : "stroke-danger"}`}
-              strokeWidth={vise === id ? 2 : depart ? 2 : 1}
+              style={{ strokeWidth: vise === id || depart ? 2 : 1, transition: FONDU }}
             />
             <text x={x + 14} y={y + 24} className="fill-muted font-mono text-[13px]">
               {etape.numero}
@@ -109,8 +123,8 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
             tabIndex={0}
             role="listitem"
             aria-label={`${satellite.nom}, utilisé par ${satellite.appelePar.length} étape(s)`}
-            opacity={vif(satellite.id) ? 1 : ESTOMPE}
-            className="cursor-default transition-opacity"
+            style={{ opacity: vif(satellite.id) ? 1 : ESTOMPE, transition: FONDU }}
+            className="cursor-default"
             onMouseEnter={() => setVise(satellite.id)}
             onFocus={() => setVise(satellite.id)}
             onBlur={() => setVise(null)}
@@ -121,7 +135,7 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
               width={SATELLITE.largeur}
               height={SATELLITE.hauteur}
               rx={16}
-              strokeWidth={vise === satellite.id ? 2 : 1}
+              style={{ strokeWidth: vise === satellite.id ? 2 : 1, transition: FONDU }}
               className={
                 satellite.sorte === "agent"
                   ? "fill-ink-soft/15 stroke-ink-soft/40"
@@ -162,8 +176,8 @@ function Trait({ lien, vif }: { lien: Lien; vif: boolean }) {
         y1={lien.de.y}
         x2={lien.vers.x}
         y2={lien.vers.y}
-        opacity={opacite}
-        className="stroke-muted transition-opacity"
+        style={{ opacity: opacite, transition: FONDU }}
+        className="stroke-muted"
         strokeWidth={1.5}
         strokeDasharray={lien.confirme ? undefined : "4 4"}
         markerEnd="url(#pointe)"
@@ -175,9 +189,8 @@ function Trait({ lien, vif }: { lien: Lien; vif: boolean }) {
   return (
     <path
       d={`M${lien.de.x},${lien.de.y} C${lien.de.x + courbure},${lien.de.y} ${lien.vers.x - courbure},${lien.vers.y} ${lien.vers.x},${lien.vers.y}`}
-      opacity={opacite}
-      className="stroke-line transition-opacity"
-      strokeWidth={vif ? 1.5 : 1}
+      style={{ opacity: opacite, strokeWidth: vif ? 1.5 : 1, transition: FONDU }}
+      className="stroke-line"
       fill="none"
     />
   );
