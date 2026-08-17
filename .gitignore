@@ -7,3 +7,9 @@ __pycache__/
 .atelier-choix.json
 .atelier-licence.json
 .claude/launch.json
+
+# Les secrets du rôle service. `.env.exemple` reste suivi, lui : il ne porte
+# que des emplacements vides et les liens pour les remplir.
+.env
+.env*.local
+
