@@ -11,11 +11,14 @@
 import type { Atelier, Portee } from "./types.ts";
 import { aDesEtapes, lireWorkflow } from "./lecture/workflow.ts";
 
+import type { Route } from "next";
+
 export interface LigneEcart {
   quoi: string;
   cause: string;
   ou: string;
-  href?: string;
+  /* `Route` et non `string` : `typedRoutes` valide alors le lien à la compilation. */
+  href?: Route;
 }
 
 export interface Part {
@@ -93,11 +96,13 @@ function ecartsDirects(
   hooks: Atelier["hooks"],
 ): LigneEcart[] {
   return [
-    ...competences.map((c) => ({ e: c, quoi: c.nom, ou: c.chemin, href: "/competences" })),
-    ...agents.map((a) => ({ e: a, quoi: a.nom, ou: a.chemin, href: "/agents" })),
-    ...commandes.map((c) => ({ e: c, quoi: `/${c.nom}`, ou: c.chemin, href: "/agents" })),
-    ...atelier.plugins.map((p) => ({ e: p, quoi: p.identifiant, ou: p.cheminInstallation, href: "/reglages" })),
-    ...hooks.map((h) => ({ e: h, quoi: h.evenement, ou: h.commande, href: "/reglages" })),
+    // `satisfies` fige le littéral : sans lui, `.map` l'élargit en `string` et
+    // `typedRoutes` ne peut plus vérifier la destination.
+    ...competences.map((c) => ({ e: c, quoi: c.nom, ou: c.chemin, href: "/competences" satisfies Route as Route })),
+    ...agents.map((a) => ({ e: a, quoi: a.nom, ou: a.chemin, href: "/agents" satisfies Route as Route })),
+    ...commandes.map((c) => ({ e: c, quoi: `/${c.nom}`, ou: c.chemin, href: "/agents" satisfies Route as Route })),
+    ...atelier.plugins.map((p) => ({ e: p, quoi: p.identifiant, ou: p.cheminInstallation, href: "/reglages" satisfies Route as Route })),
+    ...hooks.map((h) => ({ e: h, quoi: h.evenement, ou: h.commande, href: "/reglages" satisfies Route as Route })),
   ].flatMap(({ e, quoi, ou, href }) => e.silences.map((s) => ({ quoi, cause: s.cause, ou, href })));
 }
 
@@ -111,7 +116,7 @@ function ecartsDeWorkflow(
         quoi: `${c.nom} · étape ${etape.numero}`,
         cause: s.cause,
         ou: etape.fichierDeclare,
-        href: `/workflow/${encodeURIComponent(c.chemin)}`,
+        href: `/workflow/${encodeURIComponent(c.chemin)}` as Route,
       })),
     ),
   );

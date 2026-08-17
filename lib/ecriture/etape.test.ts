@@ -120,7 +120,8 @@ test("retirer une étape sort la ligne du tableau et le fichier de la séquence"
 
   // Assert
   assert.equal(existsSync(fichier), false, "le fichier quitte le dossier d'étapes");
-  assert.ok(destination?.endsWith("retirees/etape-01-suite.md"));
+  assert.ok(destination !== null, "un retrait réussi rend le chemin de destination");
+  assert.ok(destination.endsWith("retirees/etape-01-suite.md"));
   assert.ok(existsSync(destination), "il est déplacé, pas effacé");
   const table = readFileSync(skill, "utf8");
   assert.ok(!table.includes("etape-01-suite.md"));

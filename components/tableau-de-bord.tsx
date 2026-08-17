@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 /**
@@ -17,7 +18,7 @@ export function Tuile({
   titre: string;
   valeur: string | number;
   precision?: string;
-  href?: string;
+  href?: Route;
   alerte?: boolean;
 }) {
   const contenu = (
@@ -112,7 +113,7 @@ function legende(parts: Part[]): string {
 export function Ecarts({
   lignes,
 }: {
-  lignes: Array<{ quoi: string; cause: string; ou: string; href?: string }>;
+  lignes: Array<{ quoi: string; cause: string; ou: string; href?: Route }>;
 }) {
   return (
     <section className="card px-4 py-3.5">
