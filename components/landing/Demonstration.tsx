@@ -57,7 +57,10 @@ export function Demonstration({ montant }: { montant: string | null }) {
         titre="Un hook qui se tait quand tout va bien."
         corps={
           <>
-            362 lignes, aucune dépendance, 29 ms par passage. Il lit <code>enabledPlugins</code>,
+            {/* 183 et non 362 : `wc -l` sur les six .py du dépôt compte les tests.
+                Et pas de « 29 ms » : aucune mesure reproductible ne l'étaye. */}
+            183 lignes, aucune dépendance — la bibliothèque standard suffit. Il lit{" "}
+            <code>enabledPlugins</code>,
             vérifie sur disque que chaque <code>installPath</code> existe, et n&apos;ouvre la bouche
             qu&apos;en cas d&apos;écart. Il vit{" "}
             <strong className="font-semibold text-ink">hors de tout plugin</strong> : un plugin mort

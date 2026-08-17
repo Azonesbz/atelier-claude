@@ -11,7 +11,10 @@ import { Cadre } from "./EcranCadre";
  * Le chemin affiché est délibérément hors de `plugins/` : un plugin mort ne
  * charge pas ses propres hooks, donc ne peut pas signaler sa mort.
  */
-const MESURES = ["362 lignes", "aucune dépendance", "29 ms par passage"];
+/* 183 et non 362 : `wc -l` sur les six .py du dépôt compte les tests. Le hook
+   livré est hook.py + ecart.py + lecture.py + message.py. Un chiffre faux
+   devant un public qui clone et compte coûte plus cher que pas de chiffre. */
+const MESURES = ["183 lignes", "aucune dépendance", "stdlib seule"];
 
 const ALERTE = `dev-methodology@claude-config est déclaré actif,
 et son installPath n'existe pas sur le disque :

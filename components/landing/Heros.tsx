@@ -52,10 +52,16 @@ export function Heros({ montant }: { montant: string | null }) {
   );
 }
 
-/** La soustraction, en deux colonnes : ce qui charge, ce qui ne fait rien. */
+/**
+ * La soustraction, en deux colonnes : ce qui charge, ce qui ne fait rien.
+ *
+ * L'étiquette dit « exemple » et non « inventaire » : sans ce mot, les nombres
+ * du cadre se lisent comme une statistique d'usage du produit. Ce sont ceux
+ * d'une machine, rejoués pour montrer la forme du résultat.
+ */
 function InventaireRejoue() {
   return (
-    <Cadre chemin="~/.claude · ./CLAUDE.md" etiquette="inventaire">
+    <Cadre chemin="~/.claude · ./CLAUDE.md" etiquette="inventaire — exemple">
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <Tete titre="Charge" compte={147} ton="text-ink" />

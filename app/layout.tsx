@@ -15,7 +15,7 @@ const pacifico = Pacifico({
 });
 
 export const metadata: Metadata = {
-  title: "Atelier Claude",
+  title: "Orcha",
   description: "Voir et modifier un dossier .claude",
 };
 

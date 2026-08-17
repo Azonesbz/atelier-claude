@@ -49,7 +49,8 @@ export function Credibilite() {
       </h2>
       <p className="mt-3 max-w-2xl text-base text-ink-soft">
         Le cas est daté. Un plugin inscrit dans <code>enabledPlugins</code> depuis le 14 juillet,
-        dont la charge utile avait disparu du disque. Sur 1&#8239;057 transcriptions :
+        dont la charge utile avait disparu du disque. Relevé sur une seule machine — la mienne —
+        sur 1&#8239;057 transcriptions :
       </p>
 
       <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
