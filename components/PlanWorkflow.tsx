@@ -21,6 +21,12 @@ import type { Workflow } from "@/lib/lecture/workflow";
 const ESTOMPE = 0.42;
 /** Assez court pour suivre la souris, assez long pour que le fond ne clignote pas. */
 const FONDU = "opacity 120ms ease, stroke-width 120ms ease";
+/** De quoi éviter que les filets des blocs ne collent au bord de la carte. */
+const MARGE = 16;
+/* Le « utilisé par N étapes » du survol part au-delà du dernier satellite, et
+   un `svg` racine coupe à son viewBox : sans cette réserve il ne restait qu'une
+   lettre à l'écran. */
+const GOUTTIERE_SURVOL = 170;
 
 export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
   const plan = useMemo(() => mettreEnPlan(workflow), [workflow]);
@@ -40,12 +46,19 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
   const vifLien = (lien: Lien) =>
     !enAvant || (enAvant.has(lien.extremites[0]) && enAvant.has(lien.extremites[1]));
 
+  const largeur = plan.largeur + MARGE * 2 + GOUTTIERE_SURVOL;
+
+  /* Taille naturelle, une unité du plan pour un pixel. Un `svg` sans `width`
+     vaut 100 % de son parent : sur une carte de 1200 px le viewBox de 742 était
+     agrandi d'une fois et demie, texte compris, et le plan sortait deux fois
+     plus gros que le reste de la page. Le débordement du parent tient les
+     écrans étroits — on fait défiler, on ne rapetisse pas. */
   return (
     <div className="card overflow-x-auto p-5">
       <svg
-        viewBox={`-16 0 ${plan.largeur + 32} ${plan.hauteur}`}
-        style={{ minWidth: plan.largeur + 32 }}
-        className="h-auto"
+        viewBox={`${-MARGE} 0 ${largeur} ${plan.hauteur}`}
+        width={largeur}
+        height={plan.hauteur}
         role="img"
         aria-label={`Plan du workflow : ${plan.blocs.length} étapes`}
         onMouseLeave={() => setVise(null)}
@@ -60,9 +73,9 @@ export function PlanWorkflow({ workflow }: { workflow: Workflow }) {
             laissait la surbrillance collée : c'est ce qui donnait l'impression
             d'un bug. Il est premier, donc derrière tout le reste. */}
         <rect
-          x={-16}
+          x={-MARGE}
           y={0}
-          width={plan.largeur + 32}
+          width={largeur}
           height={plan.hauteur}
           fill="transparent"
           onMouseEnter={() => setVise(null)}
