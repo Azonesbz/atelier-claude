@@ -88,12 +88,23 @@ Le critère est donc l'intégration, pas la facture.
   nativement le Device Authorization Grant si un vrai CLI arrive un jour.
 - **Auth0** — le plus lourd pour le moins d'avantage ici.
 
+## Ce qui est tranché
+
+- **Le fournisseur : Clerk**, employé comme fournisseur OIDC brut côté local, et
+  via son SDK côté service seulement.
+- **Aucun acheteur à ce jour**, donc **on coupe net** : pas de passerelle clé →
+  compte à construire. `lib/licence/cle.ts` et `app/api/licence` disparaissent
+  une fois les comptes en place, pas avant.
+
 ## Ce qui reste à trancher
 
-- **Le fournisseur.**
-- **Les acheteurs déjà là.** Ceux qui détiennent une clé `AC-…` doivent pouvoir
-  la rattacher à un compte, sinon le changement casse des clients payants. S'il
-  n'y en a aucun, on coupe net et le sujet disparaît.
 - **La fiche.** `idees/atelier-claude.md` tranche aujourd'hui l'inverse : « Ni
   compte, ni session, ni mot de passe. » Elle change avec le code, sinon le
   dépôt ment.
+- **Le lien compte ↔ paiement.** Stripe reste la source de vérité du paiement,
+  mais rien ne relie encore une session de paiement à un compte. Le plus simple
+  est de poser l'identifiant du compte en `client_reference_id` à l'ouverture
+  de la session Stripe — c'est fait pour ça, et ça n'ajoute aucune table.
+- **L'instance Clerk.** Celle en place est une instance de développement
+  (`pk_test`, sur `.accounts.dev`). Un produit distribué demandera une instance
+  de production sur un domaine à soi.
