@@ -6,3 +6,4 @@ __pycache__/
 .DS_Store
 .atelier-choix.json
 .atelier-licence.json
+.claude/launch.json
