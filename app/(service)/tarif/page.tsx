@@ -1,4 +1,7 @@
+import { notFound } from "next/navigation";
 import { Achat } from "./Achat";
+import { EnteteService } from "@/components/EnteteService";
+import { estService } from "@/lib/acces/role";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +13,14 @@ export const dynamic = "force-dynamic";
  * paie.
  */
 export default function Tarif() {
+  // Cette page vit sur le service. Sur la machine d'un acheteur elle n'a pas de
+  // ClerkProvider, donc ses contrôles de compte lèveraient.
+  if (!estService()) notFound();
+
   return (
     <main className="mx-auto max-w-xl">
-      <h1 className="font-display text-3xl">Atelier Claude</h1>
+      <EnteteService />
+      <h1 className="font-display text-3xl">Orcha</h1>
       <p className="mt-3 text-sm text-muted">
         Voir ce qui est présent mais sans effet dans ton dossier <code>.claude</code> — un plugin
         déclaré dont le code a disparu, un agent sans description, une étape de workflow qui ne

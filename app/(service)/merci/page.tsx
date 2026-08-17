@@ -1,3 +1,7 @@
+import { notFound } from "next/navigation";
+import { EnteteService } from "@/components/EnteteService";
+import { estService } from "@/lib/acces/role";
+
 export const dynamic = "force-dynamic";
 
 /**
@@ -11,8 +15,11 @@ export const dynamic = "force-dynamic";
  * secret à transporter à la main, donc plus de secret à perdre.
  */
 export default function Merci() {
+  if (!estService()) notFound();
+
   return (
     <main className="mx-auto max-w-xl">
+      <EnteteService />
       <h1 className="font-display text-3xl">Merci</h1>
       <p className="mt-3 text-sm text-muted">
         L&apos;achat est rattaché à ton compte. Rien à copier : retourne dans

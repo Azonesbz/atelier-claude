@@ -1,7 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Outfit, Pacifico } from "next/font/google";
-import { Rail } from "@/components/Rail";
 import { estService } from "@/lib/acces/role";
 import "./globals.css";
 
@@ -23,10 +22,11 @@ export const metadata: Metadata = {
 /**
  * La coquille de l'application.
  *
- * Ce n'est pas un site : `h-dvh` et `overflow-hidden` sur le corps, une seule
- * zone qui défile, le chrome fixe. La colonne centrée à grandes marges d'un
- * site gaspillerait la fenêtre — et ne survivrait pas à un empaquetage en
- * logiciel, où l'application occupe ce qu'on lui donne.
+ * Elle ne fait que le strict minimum commun aux deux rôles : la langue, les
+ * polices, et `ClerkProvider` quand il y a lieu. La mise en page appartient
+ * aux coquilles — `(local)` pour l'application, `(service)` pour ce qui est
+ * public. Elles ne veulent pas la même chose, et les mélanger ici imposerait
+ * le chrome fixe d'un logiciel à une page qui doit défiler.
  */
 /**
  * `ClerkProvider` seulement là où Clerk existe.
@@ -43,20 +43,11 @@ function Enveloppe({ children }: { children: React.ReactNode }) {
 export default function Racine({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${outfit.variable} ${pacifico.variable}`}>
-      <body className="h-dvh overflow-hidden antialiased">
-        <Enveloppe>
-          <div className="flex h-full flex-col md:flex-row">
-            <Rail />
-            <div className="relative min-w-0 flex-1 overflow-y-auto">
-              <div aria-hidden className="fond-grille" />
-              {/* Une application occupe ce qu'on lui donne. La borne haute évite
-                  seulement les lignes à rallonge sur un très grand écran. */}
-              <div className="relative z-10 mx-auto max-w-[100rem] px-5 py-6 sm:px-8 sm:py-8">
-                {children}
-              </div>
-            </div>
-          </div>
-        </Enveloppe>
+      {/* Ni hauteur ni débordement ici : l'application locale veut un chrome fixe,
+          la page qui vend veut le défilement naturel du document. Chaque
+          coquille pose le sien. */}
+      <body className="antialiased">
+        <Enveloppe>{children}</Enveloppe>
       </body>
     </html>
   );
