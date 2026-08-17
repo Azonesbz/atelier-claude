@@ -5,7 +5,7 @@ import { AtelierWorkflow } from "./Atelier";
 import { Pastille } from "@/components/primitives";
 import { verifierChemin } from "@/lib/ecriture/competence";
 import { EcritureRefusee } from "@/lib/ecriture/garde";
-import { ecritureOuverte } from "@/lib/licence/etat";
+import { ecritureOuverte } from "@/lib/acces/etat";
 import { lireAtelier } from "@/lib/lecture/atelier";
 import { lireWorkflow } from "@/lib/lecture/workflow";
 
@@ -29,7 +29,7 @@ export default async function VueWorkflow({ params }: { params: Promise<{ chemin
   const arrets = workflow.etapes.filter((e) => e.arretDur).length;
   const refus = (await ecritureOuverte())
     ? raisonDuRefus(competence.chemin)
-    : "L'écriture demande la licence — la lecture reste entière. Voir la page Licence.";
+    : "L'écriture demande un compte et un achat — la lecture reste entière. Voir la page Compte.";
   // Un trou dans la numérotation : 00, 01, 03 — l'étape 02 a été retirée.
   const numerotationATrou = workflow.etapes.some((e, i) => Number(e.numero) !== i);
 

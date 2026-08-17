@@ -3,7 +3,7 @@ import { Formulaire } from "./Formulaire";
 import { notFound } from "next/navigation";
 import { Pastille, Silences } from "@/components/primitives";
 import { verifierChemin } from "@/lib/ecriture/competence";
-import { ecritureOuverte } from "@/lib/licence/etat";
+import { ecritureOuverte } from "@/lib/acces/etat";
 import { lireAtelier } from "@/lib/lecture/atelier";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default async function Detail({ params }: { params: Promise<{ chemin: str
 
   const refus = (await ecritureOuverte())
     ? raisonDuRefus(cible)
-    : "L'écriture demande la licence — la lecture reste entière. Voir la page Licence.";
+    : "L'écriture demande un compte et un achat — la lecture reste entière. Voir la page Compte.";
 
   return (
     <main>

@@ -29,6 +29,26 @@ export type EtatAcces =
   | { etat: "refusee"; raison: string };
 
 const JAMAIS_VERIFIE = "Aucun achat n'a encore pu être vérifié pour ce compte.";
+const REFUS_SANS_MOTIF = "Aucun achat trouvé pour ce compte.";
+
+/**
+ * La réponse du service, ou `null` quand elle ne dit rien d'exploitable.
+ *
+ * C'est le piège de tout ce mécanisme : une réponse **incomprise n'est pas un
+ * refus**. Page d'erreur HTML d'un proxy, JSON tronqué, champ manquant — les
+ * confondre avec un « non » refermerait l'écriture d'un acheteur sur une simple
+ * bizarrerie de réseau. Seul un `droit` explicitement booléen fait foi.
+ */
+export function lireReponse(charge: unknown): Reponse {
+  if (!charge || typeof charge !== "object" || Array.isArray(charge)) return null;
+
+  const corps = charge as Record<string, unknown>;
+  if (corps.droit === true) return { droit: true };
+  if (corps.droit !== false) return null;
+
+  const raison = corps.raison;
+  return { droit: false, raison: typeof raison === "string" && raison ? raison : REFUS_SANS_MOTIF };
+}
 
 export function tranche(cache: Cache | null, reponse: Reponse): EtatAcces {
   if (!cache) return { etat: "deconnecte" };

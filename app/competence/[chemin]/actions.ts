@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ecritureOuverte } from "@/lib/licence/etat";
+import { ecritureOuverte } from "@/lib/acces/etat";
 import { enregistrerCompetence } from "@/lib/ecriture/competence";
 
 export interface Retour {
@@ -15,7 +15,7 @@ export async function enregistrer(_precedent: Retour, formulaire: FormData): Pro
   if (!(await ecritureOuverte())) {
     return {
       etat: "refuse",
-      message: "L'écriture demande la licence. La lecture reste entière — voir la page Licence.",
+      message: "L'écriture demande un compte et un achat. La lecture reste entière — voir la page Compte.",
     };
   }
   const chemin = String(formulaire.get("chemin") ?? "");

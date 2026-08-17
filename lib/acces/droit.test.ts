@@ -9,7 +9,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { doitReverifier, DUREE_DU_CACHE, tranche } from "./droit.ts";
+import { doitReverifier, DUREE_DU_CACHE, lireReponse, tranche } from "./droit.ts";
 
 const PAYE = { droit: true, verifieLe: 1_000_000 };
 const PAS_ENCORE = { droit: false, verifieLe: 0 };
@@ -92,4 +92,45 @@ test("une date de vérification dans le futur ne gèle pas la revérification", 
 
   // Act & Assert — sinon le cache ne périmerait plus jamais
   assert.equal(doitReverifier(cache, 2_000_000), true);
+});
+
+/* La lecture de la réponse du service — et le piège qu'elle recèle : une
+   réponse qu'on ne comprend pas n'est PAS un refus. La confondre avec un refus
+   refermerait l'écriture d'un acheteur sur une simple bizarrerie de réseau. */
+
+test("le service dit oui, en toutes lettres", () => {
+  // Act & Assert
+  assert.deepEqual(lireReponse({ droit: true }), { droit: true });
+});
+
+test("le service dit non, avec son motif", () => {
+  // Act
+  const reponse = lireReponse({ droit: false, raison: "Cet achat a été remboursé." });
+
+  // Assert
+  assert.deepEqual(reponse, { droit: false, raison: "Cet achat a été remboursé." });
+});
+
+test("un refus sans motif reçoit quand même un motif affichable", () => {
+  // Act
+  const reponse = lireReponse({ droit: false });
+
+  // Assert — l'interface doit avoir quelque chose à montrer
+  assert.ok(reponse && reponse.droit === false && reponse.raison.length > 0);
+});
+
+test("« je ne sais pas » n'est pas un refus", () => {
+  // Arrange — c'est ce que le service renvoie quand Stripe ne répond pas
+  // Act & Assert
+  assert.equal(lireReponse({ droit: null, raison: "Service indisponible." }), null);
+});
+
+test("une réponse incompréhensible n'est pas un refus non plus", () => {
+  // Arrange — page d'erreur HTML, JSON tronqué, champ absent, proxy bavard
+  const abimees = [null, undefined, {}, "<html>502</html>", 42, [], { droit: "oui" }, { etat: "ok" }];
+
+  // Act & Assert — la garantie centrale : dans le doute, on ne referme rien
+  for (const brute of abimees) {
+    assert.equal(lireReponse(brute), null, `${JSON.stringify(brute)} ne doit pas valoir un refus`);
+  }
 });

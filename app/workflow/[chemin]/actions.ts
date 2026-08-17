@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ecritureOuverte } from "@/lib/licence/etat";
+import { ecritureOuverte } from "@/lib/acces/etat";
 import { brancherAgent, creerAgent, debrancherAgent } from "@/lib/ecriture/agent";
 import { ajouterEtape, decrireRetrait, retirerEtape } from "@/lib/ecriture/etape";
 import {
@@ -52,7 +52,7 @@ function relire(cheminSkill: string) {
 async function exigerLaLicence(): Promise<void> {
   if (await ecritureOuverte()) return;
   throw new Error(
-    "L'écriture demande la licence. La lecture reste entière — voir la page Licence.",
+    "L'écriture demande un compte et un achat. La lecture reste entière — voir la page Compte.",
   );
 }
 

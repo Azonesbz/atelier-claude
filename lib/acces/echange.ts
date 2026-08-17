@@ -6,7 +6,7 @@
  * est séparée de l'appel pour qu'elle soit démontrable sans joindre Clerk.
  */
 
-import { adresseJeton, corpsEchange, type Fournisseur } from "./oauth.ts";
+import { adresseJeton, corpsEchange, corpsRafraichissement, type Fournisseur } from "./oauth.ts";
 
 /** Faute de durée exploitable, une heure — la valeur usuelle d'un jeton d'accès. */
 const DUREE_PAR_DEFAUT = 3600;
@@ -47,6 +47,29 @@ export async function echanger(
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: corpsEchange(f, { code, verifieur }).toString(),
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+    return lireJetons(await reponse.json());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Un jeton d'accès frais à partir du jeton de rafraîchissement.
+ *
+ * `null` en cas d'échec, et ce n'est jamais fatal : le droit d'écrire a été
+ * établi une fois pour toutes, il n'est pas maintenu par ce jeton. Un
+ * rafraîchissement qui échoue veut dire « pas de nouvelle du service », pas
+ * « accès retiré ».
+ */
+export async function rafraichir(f: Fournisseur, jeton: string): Promise<Jetons | null> {
+  try {
+    const reponse = await fetch(adresseJeton(f), {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: corpsRafraichissement(f, { jeton }).toString(),
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });

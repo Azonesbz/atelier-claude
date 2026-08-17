@@ -18,7 +18,7 @@ const ENTREES = [
   { href: "/agents", libelle: "Agents" },
   { href: "/reglages", libelle: "Réglages" },
   { href: "/veille", libelle: "Veille" },
-  { href: "/licence", libelle: "Licence" },
+  { href: "/licence", libelle: "Compte" },
 ] as const;
 
 function estActif(chemin: string, href: string): boolean {
