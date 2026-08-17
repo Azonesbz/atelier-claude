@@ -6,6 +6,8 @@ __pycache__/
 .DS_Store
 .atelier-choix.json
 .atelier-licence.json
+# Porte le jeton de rafraîchissement du compte connecté.
+.atelier-acces.json
 .claude/launch.json
 
 # Les secrets du rôle service. `.env.exemple` reste suivi, lui : il ne porte
