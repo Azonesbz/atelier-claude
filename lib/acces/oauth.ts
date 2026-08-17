@@ -9,7 +9,14 @@
  * C'est délibéré : son motif habituel repose sur un cookie posé sur le domaine
  * du service, et l'application locale vit sur `127.0.0.1`, une autre origine.
  * Le cookie ne traverserait pas. Le flux d'autorisation, lui, traverse.
+ *
+ * L'autre raison est plus dirimante encore : le SDK backend réclame
+ * `CLERK_SECRET_KEY`, qui ouvre la Backend API — lister les comptes, les
+ * supprimer, forger des sessions. Elle ne peut pas partir sur la machine d'un
+ * acheteur. Le rôle local ne connaît donc que des valeurs publiques.
  */
+
+import { emetteurDepuisClePubliable } from "./emetteur.ts";
 
 /** Le port est cloué par `package.json`, et le README interdit d'y toucher. */
 const REDIRECTION_PAR_DEFAUT = "http://127.0.0.1:4300/api/auth/retour";
@@ -33,7 +40,7 @@ export interface Fournisseur {
  * une redirection cassée.
  */
 export function fournisseur(): Fournisseur | null {
-  const emetteur = process.env.ATELIER_ACCES_EMETTEUR?.replace(/\/$/, "");
+  const emetteur = emetteurConfigure();
   const clientId = process.env.ATELIER_ACCES_CLIENT;
   if (!emetteur || !clientId) return null;
 
@@ -42,6 +49,21 @@ export function fournisseur(): Fournisseur | null {
     clientId,
     redirection: process.env.ATELIER_ACCES_REDIRECTION ?? REDIRECTION_PAR_DEFAUT,
   };
+}
+
+/**
+ * L'émetteur déclaré, sinon celui que porte la clé publiable.
+ *
+ * Le déclarer reste possible — domaine personnalisé, instance de rechange —
+ * mais dans le cas courant les deux valeurs désigneraient la même instance, et
+ * deux valeurs à tenir d'accord finissent toujours par diverger.
+ */
+function emetteurConfigure(): string | null {
+  const declare = process.env.ATELIER_ACCES_EMETTEUR?.replace(/\/$/, "");
+  if (declare) return declare;
+
+  const publiable = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  return publiable ? emetteurDepuisClePubliable(publiable) : null;
 }
 
 export function adresseAutorisation(f: Fournisseur, { defi, etat }: { defi: string; etat: string }): string {

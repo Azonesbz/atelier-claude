@@ -10,7 +10,15 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { adresseAutorisation, corpsEchange, corpsRafraichissement, fournisseur } from "./oauth.ts";
 
-const CLES = ["ATELIER_ACCES_EMETTEUR", "ATELIER_ACCES_CLIENT", "ATELIER_ACCES_REDIRECTION"] as const;
+const CLES = [
+  "ATELIER_ACCES_EMETTEUR",
+  "ATELIER_ACCES_CLIENT",
+  "ATELIER_ACCES_REDIRECTION",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+] as const;
+
+/** base64 de « clerk.exemple.com$ ». */
+const CLE_PUBLIABLE = "pk_live_Y2xlcmsuZXhlbXBsZS5jb20k";
 
 function poser(valeurs: Partial<Record<(typeof CLES)[number], string>>) {
   for (const cle of CLES) delete process.env[cle];
@@ -40,6 +48,37 @@ test("un émetteur sans identifiant client ne fait pas un fournisseur à moitié
   poser({ ATELIER_ACCES_EMETTEUR: "https://clerk.exemple.com" });
 
   // Act & Assert — mieux vaut pas de connexion du tout qu'une redirection cassée
+  assert.equal(fournisseur(), null);
+});
+
+test("faute d'émetteur déclaré, il se déduit de la clé publiable", () => {
+  // Arrange — une variable de moins à remplir, et une faute d'accord en moins
+  poser({ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: CLE_PUBLIABLE, ATELIER_ACCES_CLIENT: "client_abc" });
+
+  // Act
+  const f = fournisseur();
+
+  // Assert
+  assert.equal(f?.emetteur, "https://clerk.exemple.com");
+});
+
+test("l'émetteur déclaré l'emporte sur celui que la clé publiable donnerait", () => {
+  // Arrange — le cas d'un domaine personnalisé, ou d'une instance de rechange
+  poser({
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: CLE_PUBLIABLE,
+    ATELIER_ACCES_EMETTEUR: "https://acces.mon-domaine.fr",
+    ATELIER_ACCES_CLIENT: "client_abc",
+  });
+
+  // Act & Assert
+  assert.equal(fournisseur()?.emetteur, "https://acces.mon-domaine.fr");
+});
+
+test("une clé publiable seule ne suffit pas : sans application OAuth, pas de connexion", () => {
+  // Arrange — l'erreur probable : croire que les clés du SDK suffisent
+  poser({ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: CLE_PUBLIABLE });
+
+  // Act & Assert
   assert.equal(fournisseur(), null);
 });
 
