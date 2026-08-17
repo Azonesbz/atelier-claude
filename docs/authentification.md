@@ -67,6 +67,32 @@ pas à le maintenir.
 jamais — la branche est morte. Le comportement est correct malgré tout, parce
 qu'une licence valide reste `active`. À ne pas recopier tel quel.
 
+## Le piège de l'écoute : `127.0.0.1` contre `localhost`
+
+Constaté, mesuré, et il remordra si on l'oublie.
+
+Le middleware Clerk réécrit vers `http://localhost:<port>/…`. Next va chercher
+cette adresse **depuis Node**, et Node résout `localhost` vers `::1` en premier
+— `/etc/hosts` déclare les deux piles. Or `npm run dev` cloue l'écoute sur
+`127.0.0.1`, en IPv4 seulement. Personne ne répond sur `::1`, et la requête
+meurt en `socket hang up` que Next rend en 500.
+
+Même code, même configuration, seule l'adresse d'écoute change :
+
+| Écoute | une route passée au middleware Clerk |
+| --- | --- |
+| `127.0.0.1` (IPv4) | **500** |
+| `::1` (via `--hostname localhost`) | **200** |
+
+`curl` masque le problème : il retombe sur IPv4 tout seul. Node, non.
+
+Le correctif n'est pas de toucher à `npm run dev` — son `--hostname 127.0.0.1`
+protège des routes d'écriture qui ne sont **pas** authentifiées, et `127.0.0.1`
+a l'avantage d'être sans ambiguïté sur toutes les machines. C'est
+`npm run dev:service` qui sert à travailler le rôle service, en double pile. Le
+rôle local n'a de toute façon pas de middleware Clerk : `estService()` y est
+faux, et rien n'est intercepté.
+
 ## Le coût ne départage pas
 
 Vérifié en août 2026, et c'est un résultat utile : à l'échelle de ce produit,

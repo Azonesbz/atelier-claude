@@ -5,12 +5,14 @@
   "description": "Voir et modifier un dossier .claude sur une page",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 4300",
+    "dev:service": "next dev --hostname localhost --port 4300",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port 4300",
     "test": "node --test 'lib/**/*.test.ts' 'lib/*.test.ts'",
     "test:hook": "python3 -m unittest discover -p 'test_*.py' -v"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.7.6",
     "@next/font": "^14.2.15",
     "next": "^16.0.0",
     "react": "^19.0.0",
