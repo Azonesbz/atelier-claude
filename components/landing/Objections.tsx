@@ -35,6 +35,16 @@ export function Objections() {
       <h2 className="surtitre">// OBJECTIONS</h2>
 
       <div className="mt-5 space-y-2">
+        {/* En premier parce que c'est la question qui arrête le clic : le bouton
+            d'achat demande un compte, et l'apprendre APRÈS avoir cliqué est la
+            friction la plus chère de la page. */}
+        <Objection question={<>&laquo;&#8239;Il faut un compte pour acheter&#8239;?&#8239;&raquo;</>}>
+          Oui, et c&apos;est le compte qui ouvre l&apos;écriture — il n&apos;y a rien à recopier
+          ensuite. Sans lui, l&apos;achat ne serait rattaché à personne et tu ne pourrais
+          jamais le faire valoir. L&apos;application, elle, se lit sans compte&nbsp;: la
+          connexion ne sert qu&apos;à prouver que l&apos;achat existe.
+        </Objection>
+
         <Objection
           question={
             <>

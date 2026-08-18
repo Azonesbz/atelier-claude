@@ -34,12 +34,15 @@ export function Achat() {
       <Show when="signed-out">
         <SignUpButton mode="modal">
           <button type="button" className="btn-primary mt-4 w-full">
-            Créer un compte et acheter
+            Acheter la licence
           </button>
         </SignUpButton>
+        {/* Le libellé reste « Acheter la licence », comme sur toute la page : un
+            CTA qui change de nom au point décisif se lit comme une autre offre.
+            L'étape compte est annoncée SOUS le bouton, pas dans son intitulé. */}
         <p className="mt-2 text-xs text-muted">
-          L&apos;achat se rattache à ton compte : c&apos;est lui qui ouvrira l&apos;écriture dans
-          l&apos;application, sans rien à copier.
+          Un compte est créé au passage : c&apos;est lui qui ouvrira l&apos;écriture dans
+          l&apos;application, sans rien à recopier.
         </p>
       </Show>
 

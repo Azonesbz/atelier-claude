@@ -1,4 +1,4 @@
-import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import { SignInButton, Show, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
 /**
@@ -26,11 +26,9 @@ export function EnteteService() {
               Se connecter
             </button>
           </SignInButton>
-          <SignUpButton mode="modal">
-            <button type="button" className="btn-secondary">
-              Créer un compte
-            </button>
-          </SignUpButton>
+          {/* Pas de « Créer un compte » ici : bordé, il était plus saillant que
+              le CTA de la page et lui volait le clic. La création se fait dans
+              le tunnel d'achat, là où elle a une raison d'être. */}
         </Show>
 
         <Show when="signed-in">

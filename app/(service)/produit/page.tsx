@@ -9,6 +9,7 @@ import { Demonstration } from "@/components/landing/Demonstration";
 import { Heros } from "@/components/landing/Heros";
 import { MiseEnRoute } from "@/components/landing/MiseEnRoute";
 import { Objections } from "@/components/landing/Objections";
+import { PiedService } from "@/components/landing/PiedService";
 import { OffreTarif } from "@/components/landing/OffreTarif";
 import { Reassurance } from "@/components/landing/Reassurance";
 import { estService } from "@/lib/acces/role";
@@ -61,6 +62,7 @@ export default async function Produit() {
       <Objections />
       <Auteur />
       <AppelFinal montant={montant} />
+      <PiedService />
     </main>
   );
 }
