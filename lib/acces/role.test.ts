@@ -10,7 +10,7 @@
 
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { estService } from "./role.ts";
+import { estPublic, estService } from "./role.ts";
 
 const CLES = ["CLERK_SECRET_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"] as const;
 
@@ -62,4 +62,47 @@ test("une valeur vide ne compte pas pour une clé", () => {
 
   // Act & Assert
   assert.equal(estService(), false);
+});
+
+/* Le rôle public : le déploiement ne doit PAS servir l'application locale.
+   Elle lit et écrit un dossier `.claude` — sur un serveur, ce serait celui du
+   serveur. Un inventaire du disque de la machine hôte exposé à Internet, et
+   des routes d'écriture qui visent ce même disque : rien de tout cela n'a de
+   raison d'exister sur un domaine public. */
+
+test("sans la variable, l'instance n'est pas publique — le cas de toute machine d'acheteur", () => {
+  // Arrange
+  delete process.env.ATELIER_PUBLIC;
+
+  // Act & Assert
+  assert.equal(estPublic(), false);
+});
+
+test("la variable posée rend l'instance publique", () => {
+  // Arrange
+  process.env.ATELIER_PUBLIC = "1";
+
+  // Act & Assert
+  assert.equal(estPublic(), true);
+  delete process.env.ATELIER_PUBLIC;
+});
+
+test("une valeur vide ne rend pas public — le piège classique du .env", () => {
+  // Arrange
+  process.env.ATELIER_PUBLIC = "";
+
+  // Act & Assert — sinon une ligne `ATELIER_PUBLIC=` éteindrait l'application locale
+  assert.equal(estPublic(), false);
+  delete process.env.ATELIER_PUBLIC;
+});
+
+test("public et service sont deux questions distinctes", () => {
+  // Arrange — la machine de développement porte les clés Clerk sans être publique
+  process.env.CLERK_SECRET_KEY = "sk_test_x";
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_y";
+  delete process.env.ATELIER_PUBLIC;
+
+  // Act & Assert — sinon développer le service éteindrait l'application locale
+  assert.equal(estService(), true);
+  assert.equal(estPublic(), false);
 });

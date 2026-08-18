@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation";
 import { Rail } from "@/components/Rail";
+import { estPublic } from "@/lib/acces/role";
 
 /**
  * La coquille de l'application locale.
@@ -12,6 +14,10 @@ import { Rail } from "@/components/Rail";
  * « Compétences » ou « Workflows » n'y veulent rien dire.
  */
 export default function CoquilleLocale({ children }: { children: React.ReactNode }) {
+  // Sur le déploiement public, l'application locale n'existe pas : elle lit et
+  // écrit un dossier `.claude`, qui serait ici celui du serveur.
+  if (estPublic()) notFound();
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden md:flex-row">
       <Rail />

@@ -16,3 +16,19 @@
 export function estService(): boolean {
   return Boolean(process.env.CLERK_SECRET_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 }
+
+/**
+ * Cette instance est-elle le déploiement public ?
+ *
+ * Distinct de `estService()`, et il faut les deux : la machine de développement
+ * porte les clés Clerk sans être publique. Confondre les deux éteindrait
+ * l'application locale dès qu'on travaille le service.
+ *
+ * Ce que ça commande : sur un domaine public, l'application locale n'existe
+ * pas. Elle lit et écrit un dossier `.claude` — sur un serveur ce serait celui
+ * du serveur. Un inventaire de son disque exposé à Internet, et des routes
+ * d'écriture qui visent ce même disque, n'ont aucune raison d'être joignables.
+ */
+export function estPublic(): boolean {
+  return Boolean(process.env.ATELIER_PUBLIC);
+}

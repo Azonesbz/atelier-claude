@@ -10,6 +10,10 @@ import type { NextConfig } from "next";
  * Claude Code exécuterait à la session suivante. Ne pas retirer `--hostname`.
  */
 const config: NextConfig = {
+  /* Le conteneur n'embarque que le serveur et ses dépendances réelles, pas les
+     600 Mo de node_modules. Sans ça, l'image est dix fois trop grosse pour un
+     VPS qui héberge déjà d'autres sites. */
+  output: "standalone",
   typedRoutes: true,
   // Pas de CLAUDE.md ni d'AGENTS.md générés : les conventions vivent dans le vault.
   agentRules: false,

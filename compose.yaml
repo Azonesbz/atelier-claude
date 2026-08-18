@@ -1,0 +1,36 @@
+# Le rôle service d'Orcha, derrière le proxy inverse déjà en place sur le VPS.
+#
+# Aucun port publié sur l'hôte : le proxy joint le conteneur par le réseau
+# Docker. Publier 4300 exposerait l'application à l'Internet en clair, à côté
+# du TLS plutôt que derrière.
+
+services:
+  orcha:
+    build:
+      context: .
+      args:
+        # Inscrites dans le paquet client à la compilation — changer l'une
+        # d'elles impose de reconstruire, pas seulement de redémarrer.
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:?clé publiable Clerk de PRODUCTION requise}
+        NEXT_PUBLIC_ATELIER_SERVICE: ${NEXT_PUBLIC_ATELIER_SERVICE:?adresse publique du service requise}
+        NEXT_PUBLIC_STRIPE_PRICE_ID: ${NEXT_PUBLIC_STRIPE_PRICE_ID:?identifiant de tarif Stripe requis}
+    image: orcha:latest
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      ATELIER_PUBLIC: "1"
+    expose:
+      - "4300"
+    networks: [proxy]
+    healthcheck:
+      # `/produit` et non `/` : la racine appartient au rôle local, qui répond
+      # 404 ici par construction. Un contrôle sur `/` dirait « mort » à tort.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4300/produit"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  proxy:
+    external: true

@@ -18,3 +18,6 @@ __pycache__/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Le fichier de production vit sur le VPS, jamais ici.
+.env.production
