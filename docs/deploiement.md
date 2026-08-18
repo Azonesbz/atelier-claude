@@ -50,24 +50,34 @@ serveur et n'en bouge pas.
 Variables d'ajustement : `ORCHA_HOTE`, `ORCHA_UTILISATEUR`, `ORCHA_DOMAINE`,
 `ORCHA_DOSSIER`.
 
-### État au 18 août 2026 — bloqué à l'étape 1
+### Le serveur
 
-Le VPS est bien identifié : `51.38.82.159`, reverse DNS `vps-49af6c4f.vps.ovh.net`,
-OpenSSH 10 sur Debian 13. Il n'accepte **que** `publickey` — aucune
-authentification par mot de passe.
+`51.38.82.159`, reverse DNS `vps-49af6c4f.vps.ovh.net` — un VPS OVH, OpenSSH 10
+sur Debian 13. Il n'accepte **que** `publickey`, aucun mot de passe.
 
-La clé du poste est présentée et refusée pour `root`, `vins`, `ubuntu`,
-`debian`, `vincent` et `admin`. La même clé authentifie GitHub sans problème :
-elle est simplement absente des `authorized_keys` du serveur.
+**L'utilisateur est `azones`**, pas `root`. La clé du poste y est autorisée et
+authentifie sans problème.
 
-À faire, depuis une session déjà ouverte sur le VPS :
+### `fail2ban` est actif — leçon apprise à la dure
 
-```bash
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIChrbRQQPu9tjIy7cVDJlqRXZc7/a/DJjVvKU3zPK4rb vincent.avez22@gmail.com' >> ~/.ssh/authorized_keys
-```
+Le 18 août 2026, un balayage de noms d'utilisateur a fait bannir l'IP du poste :
+le port 22 a cessé de répondre **entièrement**, ICMP compris, alors que le 443
+restait ouvert vu d'ailleurs. Vingt tentatives d'affilée ressemblent à une
+attaque, et le serveur a réagi comme il devait.
 
-Il manque aussi, indépendamment : l'enregistrement DNS `A` de
-`orcha.vincentavz.com` vers `51.38.82.159`.
+Deux symptômes à ne pas confondre :
+
+| Symptôme | Cause | Quoi faire |
+| --- | --- | --- |
+| `Permission denied (publickey)` | mauvaise clé ou mauvais utilisateur | corriger, puis un seul essai |
+| port 22 **injoignable**, ping filtré | bannissement | **attendre**, ne pas réessayer |
+
+Réessayer pendant un bannissement le prolonge. `deployer.sh` distingue les deux
+cas et le dit.
+
+### Il manque encore
+
+L'enregistrement DNS `A` de `orcha.vincentavz.com` vers `51.38.82.159`.
 
 Le conteneur ne publie **aucun port** sur l'hôte : il rejoint le réseau
 `proxy`, et le proxy inverse déjà en place le joint par son nom. Publier 4300

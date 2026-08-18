@@ -6,7 +6,7 @@
 set -euo pipefail
 
 HOTE="${ORCHA_HOTE:-51.38.82.159}"
-UTILISATEUR="${ORCHA_UTILISATEUR:-root}"
+UTILISATEUR="${ORCHA_UTILISATEUR:-azones}"
 DOMAINE="${ORCHA_DOMAINE:-orcha.vincentavz.com}"
 DOSSIER="${ORCHA_DOSSIER:-/opt/orcha}"
 DEPOT="git@github.com:Azonesbz/atelier-claude.git"
@@ -15,9 +15,15 @@ ssh_vps() { ssh -o BatchMode=yes -o ConnectTimeout=10 "$UTILISATEUR@$HOTE" "$@";
 
 echo "→ 1/5  Accès SSH"
 if ! ssh_vps true 2>/dev/null; then
-  echo "   ✗ $UTILISATEUR@$HOTE refuse la clé."
-  echo "     Ajoute cette clé publique dans ~/.ssh/authorized_keys du serveur :"
+  echo "   ✗ $UTILISATEUR@$HOTE injoignable."
+  echo "     Deux causes possibles, à distinguer avant de réessayer :"
+  echo "     · la clé n'est pas autorisée — ajoute-la sur le serveur :"
   cat ~/.ssh/id_ed25519.pub
+  echo "     · l'IP est bannie (fail2ban) — le port 22 ne répond alors PLUS DU TOUT."
+  echo "       Ne pas réessayer en boucle : chaque tentative prolonge le bannissement."
+  nc -z -G 5 "$HOTE" 22 2>/dev/null \
+    && echo "       → port 22 ouvert : c'est donc la clé ou l'utilisateur." \
+    || echo "       → port 22 injoignable : c'est un bannissement. Attendre."
   exit 1
 fi
 echo "   ✓ joignable"
