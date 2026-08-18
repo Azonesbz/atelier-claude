@@ -37,13 +37,37 @@ Vérifié sur le serveur autonome, avant tout conteneur :
 
 ## Le déploiement
 
+Une commande, depuis ce poste :
+
 ```bash
-# sur le VPS
-git clone git@github.com:Azonesbz/atelier-claude.git orcha && cd orcha
-cp .env.production.exemple .env.production && $EDITOR .env.production
-docker compose build && docker compose up -d
-docker compose ps          # l'état de santé doit passer à « healthy »
+./deployer.sh
 ```
+
+Le script est idempotent et s'arrête net sur le premier prérequis manquant, en
+disant lequel. Il ne transmet **aucun secret** : `.env.production` vit sur le
+serveur et n'en bouge pas.
+
+Variables d'ajustement : `ORCHA_HOTE`, `ORCHA_UTILISATEUR`, `ORCHA_DOMAINE`,
+`ORCHA_DOSSIER`.
+
+### État au 18 août 2026 — bloqué à l'étape 1
+
+Le VPS est bien identifié : `51.38.82.159`, reverse DNS `vps-49af6c4f.vps.ovh.net`,
+OpenSSH 10 sur Debian 13. Il n'accepte **que** `publickey` — aucune
+authentification par mot de passe.
+
+La clé du poste est présentée et refusée pour `root`, `vins`, `ubuntu`,
+`debian`, `vincent` et `admin`. La même clé authentifie GitHub sans problème :
+elle est simplement absente des `authorized_keys` du serveur.
+
+À faire, depuis une session déjà ouverte sur le VPS :
+
+```bash
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIChrbRQQPu9tjIy7cVDJlqRXZc7/a/DJjVvKU3zPK4rb vincent.avez22@gmail.com' >> ~/.ssh/authorized_keys
+```
+
+Il manque aussi, indépendamment : l'enregistrement DNS `A` de
+`orcha.vincentavz.com` vers `51.38.82.159`.
 
 Le conteneur ne publie **aucun port** sur l'hôte : il rejoint le réseau
 `proxy`, et le proxy inverse déjà en place le joint par son nom. Publier 4300
