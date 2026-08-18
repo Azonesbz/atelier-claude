@@ -8,6 +8,18 @@ l'enregistrement DNS `A` de `orcha.vincentavz.com` pointe déjà vers
 `51.38.82.159` **avant** le premier démarrage : Let's Encrypt vérifie le
 domaine, et il échouera tant que le nom ne résout pas.
 
+## Éprouvé, pas supposé
+
+Le bloc ci-dessous a été essayé pour de vrai le 18 août 2026 — conteneur Orcha
+et conteneur Caddy sur un même réseau Docker, sur le poste de développement.
+À travers le proxy : `/produit`, `/tarif`, `/merci` et `/compte` en **200**,
+`/` et `/workflows` en **404**, page servie intacte (titre, appel à l'action,
+auteur, pied légal). La résolution par nom de service fonctionne.
+
+Seul le TLS n'a pas pu être essayé : Let's Encrypt ne peut rien vérifier depuis
+une machine de développement. C'est le seul inconnu restant, et il se lève tout
+seul si le DNS résout avant le premier démarrage.
+
 ## Si Caddy tourne dans un conteneur
 
 Il doit partager le réseau `proxy` avec Orcha, sinon il ne peut pas joindre le
