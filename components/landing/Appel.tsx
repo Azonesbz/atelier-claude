@@ -16,9 +16,10 @@ import Link from "next/link";
 /**
  * EMPLACEMENT — la destination du chemin gratuit.
  *
- * Le distant s'appelle encore `atelier-claude` alors que le produit s'appelle
- * Orcha, et rien ne dit qu'il soit public. Tant que ce n'est pas tranché, le
- * chemin gratuit n'a pas d'adresse sûre : on ne rend pas un lien mort.
+ * Le dépôt est **privé** (arbitré le 18 août 2026). Le chemin gratuit n'a donc
+ * aucune adresse, et ce n'est pas qu'un manque d'affichage : l'installation
+ * passe aujourd'hui par un clone du dépôt, donc **personne ne peut installer
+ * l'outil**, ni gratuitement ni après avoir payé. Voir `MiseEnRoute`.
  */
 export const DEPOT_PUBLIC: string | null = null;
 
@@ -49,11 +50,20 @@ export function AppelPrincipal({
  * dossier `.claude`.
  */
 export function AppelSecondaire({ libelle = "Tout voir gratuitement, sur ta machine" }) {
+  /* Faute de destination, PAS de bouton. Un `<span>` stylé en bouton n'est ni
+     focusable ni cliquable : il promet une action qui n'existe pas, et son
+     excuse vivait dans un `title` — invisible au tactile, donc pour la majorité
+     du trafic. Mieux vaut une phrase vraie qu'un bouton mort. */
   if (!DEPOT_PUBLIC) {
     return (
-      <span className="btn-ghost cursor-not-allowed" title="Destination à définir avant publication">
-        {libelle}
-      </span>
+      <p className="text-sm text-muted">
+        La lecture est gratuite et le restera. Le canal de distribution n&apos;est pas encore
+        ouvert&nbsp;:{" "}
+        <a href="mailto:vincent.avez22@gmail.com" className="text-ink underline underline-offset-4">
+          écris-moi
+        </a>{" "}
+        pour y accéder.
+      </p>
     );
   }
 

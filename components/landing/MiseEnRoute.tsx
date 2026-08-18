@@ -79,12 +79,21 @@ export function MiseEnRoute() {
       </ol>
 
       <div className="mt-3">
-        <ARemplir quoi="distribution">
+        <ARemplir quoi="distribution — bloque la vente, pas seulement l'affichage">
           <p className="max-w-prose">
-            Ni paquet, ni signature, ni canal tiers : l&apos;installation passe aujourd&apos;hui par
-            un clone du dépôt et <code className="font-mono">npm install</code>. Les pages qui
-            vendent dans cette niche affichent un binaire signé et son empreinte SHA256. À trancher
-            avant publication.
+            L&apos;installation passe aujourd&apos;hui par un clone du dépôt et{" "}
+            <code className="font-mono">npm install</code>. Or le dépôt est <strong>privé</strong>.
+            Tant qu&apos;il le reste et qu&apos;aucun paquet n&apos;existe,{" "}
+            <strong className="text-amber">
+              un acheteur ne peut pas installer ce qu&apos;il vient de payer
+            </strong>
+            . Ce n&apos;est pas un manque de finition&nbsp;: c&apos;est ce qui interdit
+            d&apos;ouvrir la vente.
+          </p>
+          <p className="max-w-prose">
+            Trois sorties possibles, à trancher&nbsp;: rendre le dépôt public et vendre la licence
+            d&apos;écriture&nbsp;; publier un paquet npm ou un binaire signé avec son empreinte
+            SHA256&nbsp;; ou donner l&apos;accès au dépôt privé après paiement.
           </p>
         </ARemplir>
       </div>

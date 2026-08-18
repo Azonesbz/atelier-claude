@@ -1,16 +1,13 @@
-import { ARemplir, ChampARemplir } from "./ARemplir";
-
 /**
- * L'auteur — la seule preuve sociale disponible, et elle est vide.
+ * L'auteur — la seule preuve sociale disponible, et c'est assumé.
  *
  * Le produit n'a aucun acheteur : témoignages, logos et compteurs sont donc
- * interdits, et rien ne les remplacera par un ersatz. Ce qui reste tenable,
- * c'est une personne responsable en face d'un outil qui écrit dans
- * `~/.claude` — le panel montre que l'anonymat s'y paie plus cher qu'ailleurs.
+ * interdits, et rien ne les remplace par un ersatz. Ce qui reste tenable, c'est
+ * une personne responsable en face d'un outil qui écrit dans `~/.claude` — le
+ * panel montre que l'anonymat s'y paie plus cher qu'ailleurs.
  *
- * La section est donc construite mais pas remplie : ni nom autorisé à
- * l'affichage, ni canal de contact validé. Elle reste visible avec ses champs
- * marqués, parce qu'un trou qui se voit se comble ; un trou masqué se publie.
+ * L'origine n'est pas une histoire de marque : elle est datée et mesurée, et
+ * les deux chiffres cités sont ceux d'une seule machine. C'est dit.
  */
 
 export function Auteur() {
@@ -18,30 +15,31 @@ export function Auteur() {
     <section className="mt-20">
       <h2 className="surtitre">// L&apos;AUTEUR</h2>
 
-      <div className="mt-5">
-        <ARemplir quoi="identité de l'auteur">
-          <p className="max-w-prose">
-            Rien n&apos;est publié sans accord. Quatre champs à arbitrer avant la mise en ligne —
-            aucun ne peut être deviné à la place de l&apos;intéressé.
-          </p>
+      <div className="card mt-5 max-w-prose p-6">
+        <p className="text-lg font-medium text-ink">Vincent Avez</p>
 
-          <div className="flex flex-wrap items-start gap-5 pt-1">
-            <div className="flex size-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-line-strong text-center">
-              <span className="text-xs text-ink-soft">Portrait</span>
-              <span className="font-mono text-xs text-amber">à remplir</span>
-            </div>
+        <p className="mt-3 text-sm text-ink-soft">
+          J&apos;ai écrit Orcha parce que j&apos;ai perdu un mois sans le savoir. Un plugin
+          inscrit dans mes réglages depuis le 14 juillet, dont la charge utile avait disparu du
+          disque&nbsp;: aucun avertissement, code de retour 0. Je ne l&apos;ai vu qu&apos;en
+          comptant mes propres transcriptions, un mois plus tard.
+        </p>
 
-            <div className="min-w-0 space-y-2">
-              <ChampARemplir intitule="Nom affiché" />
-              <ChampARemplir intitule="Une phrase sur l'origine du produit — le mois de panne vécu et mesuré" />
-              <ChampARemplir intitule="Un canal joignable — e-mail, GitHub, X" />
-              <p className="text-xs">
-                Le portrait est facultatif. Le nom et le canal joignable ne le sont pas : ce sont
-                eux qui remplacent l&apos;entreprise absente.
-              </p>
-            </div>
-          </div>
-        </ARemplir>
+        <p className="mt-3 text-sm text-muted">
+          Rien de rare, et il faut le dire&nbsp;: n&apos;importe qui utilisant Claude Code
+          sérieusement a le même matériau. J&apos;avais seulement la panne, datée, et
+          l&apos;envie de ne plus la revivre en silence.
+        </p>
+
+        <p className="mt-4 text-sm">
+          <a
+            href="mailto:vincent.avez22@gmail.com"
+            className="text-ink underline underline-offset-4"
+          >
+            vincent.avez22@gmail.com
+          </a>
+          <span className="text-muted"> — une vraie adresse, qui répond.</span>
+        </p>
       </div>
     </section>
   );
