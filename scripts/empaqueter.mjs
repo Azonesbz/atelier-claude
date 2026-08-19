@@ -27,7 +27,7 @@ const INTERDITS = [
   // distribue le dépôt.
   /^docs$/, /^scripts$/, /^atelier-claude$/, /^deployer\.sh$/, /^compose\.yaml$/,
   /^Dockerfile$/, /^proxy\.ts$/, /^next-env\.d\.ts$/, /^tsconfig\.json$/,
-  /^postcss\.config\.mjs$/, /^next\.config\.ts$/,
+  /^postcss\.config\.mjs$/, /^next\.config\.ts$/, /^tsconfig\.tsbuildinfo$/,
 ];
 
 function purger(dossier) {
@@ -74,6 +74,16 @@ writeFileSync(
       // refuserait de démarrer. Le lanceur est en .mjs, il s'en passe.
       license: "SEE LICENSE IN README.md",
       engines: { node: ">=20" },
+      /* npm exclut TOUJOURS node_modules d'un tarball : le serveur autonome
+         perdrait ses dépendances et ne démarrerait pas. On les déclare donc,
+         aux versions exactes du build — un écart de version entre les chunks
+         compilés et le runtime installé casse au démarrage.
+         Clerk, Stripe et yaml n'y sont pas : ils sont compilés dans les chunks. */
+      dependencies: {
+        next: app.dependencies.next.replace(/^[\^~]/, ""),
+        react: app.dependencies.react.replace(/^[\^~]/, ""),
+        "react-dom": app.dependencies["react-dom"].replace(/^[\^~]/, ""),
+      },
       keywords: ["claude", "claude-code", "skills", "agents", "diagnostic"],
       homepage: "https://orcha.vincentavz.com",
       author: "Vincent Avez <vincent.avez22@gmail.com>",
@@ -91,5 +101,7 @@ if (retires.length) {
 
 cpSync(join(RACINE, "README.md"), join(SORTIE, "README.md"));
 console.log(`Paquet assemblé dans ${SORTIE}`);
-console.log("Vérifie avec :  npm pack --dry-run --prefix paquet");
-console.log("Publie avec  :  npm publish --access public --prefix paquet");
+// `--prefix` ne change PAS le manifeste que lit npm : il lirait celui de la
+// racine, marqué `private`. Il faut se placer dans le dossier.
+console.log("Vérifie avec :  cd paquet && npm pack --dry-run");
+console.log("Publie avec  :  cd paquet && npm publish --access public");
