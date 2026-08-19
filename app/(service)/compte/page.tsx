@@ -1,7 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Reparation } from "./Reparation";
 import { EnteteService } from "@/components/EnteteService";
 import { estAdmin } from "@/lib/acces/faveur";
 import { estService } from "@/lib/acces/role";
@@ -65,10 +64,14 @@ export default async function EspaceClient() {
           <section className="card mt-3 p-5">
             <span className="surtitre">Récupérer l&apos;outil</span>
             <p className="mt-2 text-sm text-muted">
-              Le dépôt est privé&nbsp;: l&apos;accès se donne par invitation GitHub. Elle part
-              automatiquement à l&apos;achat — si tu t&apos;es trompé d&apos;identifiant, renvoie-la.
+              Le logiciel est libre et gratuit&nbsp;: rien à réclamer ici.
             </p>
-            <Reparation dejaInvite={null} />
+            <pre className="mt-3 overflow-x-auto rounded-lg bg-paper p-4 font-mono text-sm text-ink select-all">
+              npx orcha-cli
+            </pre>
+            <p className="mt-2 text-sm text-muted">
+              Connecte-toi depuis l&apos;outil, et l&apos;écriture s&apos;ouvre toute seule.
+            </p>
           </section>
         </>
       )}

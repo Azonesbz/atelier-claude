@@ -14,14 +14,13 @@ import Link from "next/link";
  */
 
 /**
- * EMPLACEMENT — la destination du chemin gratuit.
+ * La destination du chemin gratuit.
  *
- * Le dépôt est **privé** (arbitré le 18 août 2026). Le chemin gratuit n'a donc
- * aucune adresse, et ce n'est pas qu'un manque d'affichage : l'installation
- * passe aujourd'hui par un clone du dépôt, donc **personne ne peut installer
- * l'outil**, ni gratuitement ni après avoir payé. Voir `MiseEnRoute`.
+ * Le projet est passé en open source le 19 août 2026, sous licence MIT. Le
+ * chemin gratuit a donc enfin une adresse — et l'installation ne demande plus
+ * d'accès à quoi que ce soit : `npx orcha-cli` suffit.
  */
-export const DEPOT_PUBLIC: string | null = null;
+export const DEPOT_PUBLIC = "https://github.com/Azonesbz/atelier-claude";
 
 export function libelleAchat(montant: string | null): string {
   return montant ? `Acheter la licence — ${montant}` : "Acheter la licence";
@@ -50,23 +49,6 @@ export function AppelPrincipal({
  * dossier `.claude`.
  */
 export function AppelSecondaire({ libelle = "Tout voir gratuitement, sur ta machine" }) {
-  /* Faute de destination, PAS de bouton. Un `<span>` stylé en bouton n'est ni
-     focusable ni cliquable : il promet une action qui n'existe pas, et son
-     excuse vivait dans un `title` — invisible au tactile, donc pour la majorité
-     du trafic. Mieux vaut une phrase vraie qu'un bouton mort. */
-  if (!DEPOT_PUBLIC) {
-    return (
-      <p className="text-sm text-muted">
-        La lecture est gratuite et le restera. Le canal de distribution n&apos;est pas encore
-        ouvert&nbsp;:{" "}
-        <a href="mailto:vincent.avez22@gmail.com" className="text-ink underline underline-offset-4">
-          écris-moi
-        </a>{" "}
-        pour y accéder.
-      </p>
-    );
-  }
-
   return (
     <a href={DEPOT_PUBLIC} className="btn-ghost" rel="noreferrer noopener">
       {libelle} →

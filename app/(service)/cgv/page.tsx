@@ -61,13 +61,15 @@ export default async function Cgv() {
 
       <Section titre="Livraison">
         <p>
-          Le logiciel est distribué par un dépôt Git privé. Au moment du paiement, l&apos;acheteur
-          renseigne son identifiant GitHub&nbsp;; une invitation en lecture lui est envoyée
-          automatiquement une fois le paiement acquitté.
+          Le logiciel est <strong className="text-ink">libre et gratuit</strong>, publié sous
+          licence MIT. Il s&apos;installe par <code>npx orcha-cli</code> sans achat ni compte, et
+          son code est public.
         </p>
         <p>
-          En cas d&apos;erreur de saisie, l&apos;invitation peut être renvoyée à tout moment depuis
-          la page « Mon compte », sans intervention de l&apos;éditeur.
+          Ce qui s&apos;achète n&apos;est donc pas le logiciel mais{" "}
+          <strong className="text-ink">le droit d&apos;écrire depuis son interface</strong>. Il
+          s&apos;ouvre sur le compte au paiement, sans rien à installer ni à recopier&nbsp;: la
+          page « Mon compte » en fait foi.
         </p>
       </Section>
 

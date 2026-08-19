@@ -45,17 +45,6 @@ export async function POST() {
       customer: client,
       client_reference_id: userId,
       line_items: [{ price: tarif, quantity: 1 }],
-      // Le dépôt est privé : sans identifiant GitHub, l'achat ne peut pas être
-      // livré. On le demande DANS le tunnel plutôt qu'après, pour ne pas
-      // encaisser sans savoir à qui donner l'accès.
-      custom_fields: [
-        {
-          key: "github",
-          label: { type: "custom", custom: "Ton identifiant GitHub" },
-          type: "text",
-          text: { minimum_length: 1, maximum_length: 39 },
-        },
-      ],
       success_url: `${base}/merci?session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/tarif`,
       allow_promotion_codes: true,

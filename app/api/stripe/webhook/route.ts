@@ -1,5 +1,4 @@
 import { lireLivraison } from "@/lib/livraison/evenement";
-import { inviterAuDepot } from "@/lib/livraison/github";
 import { stripe } from "@/lib/licence/stripe";
 
 /**
@@ -32,10 +31,10 @@ export async function POST(requete: Request) {
   const livraison = lireLivraison(evenement);
   if (!livraison) return Response.json({ recu: true, action: "aucune" });
 
-  if (!livraison.github) {
-    return Response.json({ recu: true, action: "identifiant-github-illisible", compte: livraison.compte });
-  }
-
-  const invitation = await inviterAuDepot(livraison.github);
-  return Response.json({ recu: true, action: "invitation", ...invitation });
+  /* Plus rien à livrer depuis le 19 août 2026 : le logiciel est open source et
+     s'installe par `npx orcha-cli`. Ce qui s'achète est le droit d'écrire, que
+     `/api/droit` accorde en interrogeant Stripe — sans qu'aucun webhook n'ait
+     à intervenir. La route reste pour tracer, et parce qu'un endpoint déclaré
+     chez Stripe qui disparaîtrait ferait accumuler les échecs de livraison. */
+  return Response.json({ recu: true, action: "achat-constate", compte: livraison.compte });
 }

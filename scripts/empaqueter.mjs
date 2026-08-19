@@ -72,7 +72,7 @@ writeFileSync(
       bin: { orcha: "bin/orcha.mjs" },
       // Surtout PAS `type: module` : le server.js de Next est en CommonJS et
       // refuserait de démarrer. Le lanceur est en .mjs, il s'en passe.
-      license: "SEE LICENSE IN README.md",
+      license: "MIT",
       engines: { node: ">=20" },
       /* npm exclut TOUJOURS node_modules d'un tarball : le serveur autonome
          perdrait ses dépendances et ne démarrerait pas. On les déclare donc,
@@ -100,6 +100,7 @@ if (retires.length) {
 }
 
 cpSync(join(RACINE, "README.md"), join(SORTIE, "README.md"));
+cpSync(join(RACINE, "LICENSE"), join(SORTIE, "LICENSE"));
 console.log(`Paquet assemblé dans ${SORTIE}`);
 // `--prefix` ne change PAS le manifeste que lit npm : il lirait celui de la
 // racine, marqué `private`. Il faut se placer dans le dossier.

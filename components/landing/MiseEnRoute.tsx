@@ -79,23 +79,28 @@ export function MiseEnRoute() {
       </ol>
 
       <div className="mt-3">
-        <ARemplir quoi="distribution — bloque la vente, pas seulement l'affichage">
-          <p className="max-w-prose">
-            L&apos;installation passe aujourd&apos;hui par un clone du dépôt et{" "}
-            <code className="font-mono">npm install</code>. Or le dépôt est <strong>privé</strong>.
-            Tant qu&apos;il le reste et qu&apos;aucun paquet n&apos;existe,{" "}
-            <strong className="text-amber">
-              un acheteur ne peut pas installer ce qu&apos;il vient de payer
-            </strong>
-            . Ce n&apos;est pas un manque de finition&nbsp;: c&apos;est ce qui interdit
-            d&apos;ouvrir la vente.
+        <div className="card border-accent/40 p-5">
+          <p className="surtitre">Installer</p>
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-paper p-4 font-mono text-sm text-ink select-all">
+            npx orcha-cli
+          </pre>
+          <p className="mt-3 max-w-prose text-sm text-muted">
+            Rien à cloner, rien à configurer. La commande télécharge l&apos;outil, le démarre sur{" "}
+            <code className="font-mono">127.0.0.1</code> et ouvre ton navigateur.{" "}
+            <strong className="text-ink-soft">Node 20 ou plus</strong> suffit.
           </p>
-          <p className="max-w-prose">
-            Trois sorties possibles, à trancher&nbsp;: rendre le dépôt public et vendre la licence
-            d&apos;écriture&nbsp;; publier un paquet npm ou un binaire signé avec son empreinte
-            SHA256&nbsp;; ou donner l&apos;accès au dépôt privé après paiement.
+          <p className="mt-2 max-w-prose text-sm text-muted">
+            Le code est ouvert, sous licence MIT —{" "}
+            <a
+              href="https://github.com/Azonesbz/atelier-claude"
+              className="text-ink underline underline-offset-4"
+              rel="noreferrer noopener"
+            >
+              lis-le avant de le lancer
+            </a>
+            , c&apos;est un outil qui écrit dans ton <code className="font-mono">~/.claude</code>.
           </p>
-        </ARemplir>
+        </div>
       </div>
     </section>
   );
