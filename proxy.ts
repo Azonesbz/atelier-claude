@@ -34,6 +34,11 @@ export const config = {
     "/produit(.*)",
     "/tarif(.*)",
     "/merci(.*)",
+    // Les pages légales portent aussi l'en-tête de compte, donc elles ont
+    // besoin d'une session pour savoir quoi afficher.
+    "/mentions(.*)",
+    "/cgv(.*)",
+    "/confidentialite(.*)",
     // Le paiement a besoin de savoir QUI achète, donc d'une session Clerk.
     "/api/paiement(.*)",
     // `/api/droit` en est volontairement absent : il s'authentifie par jeton
