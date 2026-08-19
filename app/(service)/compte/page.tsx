@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EnteteService } from "@/components/EnteteService";
+import { Reparation } from "./Reparation";
 import { estService } from "@/lib/acces/role";
 import { clientDuCompte } from "@/lib/acces/rattachement";
 import { etatDuPaiement } from "@/lib/licence/stripe";
@@ -54,6 +55,10 @@ export default async function EspaceClient() {
             Voir l&apos;offre
           </Link>
         )}
+
+        {/* Le dépôt est privé : l'accès EST la livraison. Le webhook l'envoie
+            au paiement ; ceci répare une faute de frappe sans courriel. */}
+        {achat.paye && <Reparation dejaInvite={null} />}
       </section>
 
       <p className="mt-4 text-xs text-muted">
