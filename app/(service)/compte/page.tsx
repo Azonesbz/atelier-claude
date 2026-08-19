@@ -1,89 +1,95 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { EnteteService } from "@/components/EnteteService";
 import { Reparation } from "./Reparation";
+import { EnteteService } from "@/components/EnteteService";
+import { estAdmin } from "@/lib/acces/faveur";
 import { estService } from "@/lib/acces/role";
-import { clientDuCompte } from "@/lib/acces/rattachement";
-import { etatDuPaiement } from "@/lib/licence/stripe";
+import { verdictDuCompte } from "@/lib/acces/verdict";
 
 export const dynamic = "force-dynamic";
 
 /**
- * L'espace client, côté service.
+ * Le tableau de bord du compte, côté service.
  *
- * Il ne montre qu'une chose, parce qu'il n'y a qu'une chose à savoir : l'achat
- * existe-t-il. Aucun dossier `.claude` n'arrive jamais ici, et Stripe reste la
- * source de vérité — cette page ne fait que la lire.
+ * C'est là qu'on atterrit en se connectant — la racine appartient au rôle
+ * local et répond 404 ici. Il montre ce que le compte ouvre, d'où vient ce
+ * droit, et comment récupérer l'outil.
  */
 export default async function EspaceClient() {
   if (!estService()) notFound();
 
   const { userId } = await auth();
-  if (!userId) {
-    return (
-      <main className="mx-auto max-w-xl">
-        <EnteteService />
-        <h1 className="font-display text-3xl">Mon compte</h1>
-        <p className="mt-3 text-sm text-muted">
-          Connecte-toi pour retrouver ton achat.
-        </p>
-      </main>
-    );
-  }
+  if (!userId) return <Invite />;
 
   const utilisateur = await currentUser();
-  const achat = await lireAchat(userId);
+  const courriel = utilisateur?.primaryEmailAddress?.emailAddress ?? null;
+  const verdict = await verdictDuCompte(userId).catch(() => null);
 
   return (
-    <main className="mx-auto max-w-xl">
+    <main className="mx-auto max-w-2xl">
       <EnteteService />
+
       <h1 className="font-display text-3xl">Mon compte</h1>
-      <p className="mt-2 font-mono text-xs text-muted">
-        {utilisateur?.primaryEmailAddress?.emailAddress ?? "—"}
-      </p>
+      <p className="mt-2 font-mono text-xs text-muted">{courriel ?? "—"}</p>
 
       <section className="card mt-6 p-5">
-        <span className="surtitre">Achat</span>
-        <p className={`mt-2 text-xl font-semibold ${achat.paye ? "text-ink" : "text-muted"}`}>
-          {achat.paye ? "Actif" : "Aucun achat"}
+        <span className="surtitre">Écriture</span>
+        <p className={`mt-2 text-xl font-semibold ${verdict?.droit ? "text-ink" : "text-muted"}`}>
+          {verdict?.droit ? "Débloquée" : "Verrouillée"}
         </p>
-        <p className="mt-1 text-sm text-muted">{achat.detail}</p>
+        <p className="mt-1 text-sm text-muted">
+          {verdict ? verdict.detail : "Le service de paiement ne répond pas. Réessaie plus tard."}
+          {verdict?.achatLe && ` Acheté le ${new Date(verdict.achatLe).toLocaleDateString("fr-FR")}.`}
+        </p>
 
-        {!achat.paye && (
+        {!verdict?.droit && (
           <Link href="/tarif" className="btn-primary mt-4 inline-flex">
             Voir l&apos;offre
           </Link>
         )}
-
-        {/* Le dépôt est privé : l'accès EST la livraison. Le webhook l'envoie
-            au paiement ; ceci répare une faute de frappe sans courriel. */}
-        {achat.paye && <Reparation dejaInvite={null} />}
       </section>
 
-      <p className="mt-4 text-xs text-muted">
-        L&apos;écriture s&apos;ouvre toute seule dans l&apos;application, sur cette machine, dès
-        que tu y es connecté au même compte. Rien à copier.
-      </p>
+      {verdict?.droit && (
+        <>
+          <section className="card mt-3 p-5">
+            <span className="surtitre">Ce que ça ouvre</span>
+            <ul className="mt-3 space-y-1.5 text-sm text-ink-soft">
+              <li>Éditer une compétence depuis l&apos;interface</li>
+              <li>Ajouter, retirer, renuméroter des étapes de workflow</li>
+              <li>Créer et brancher des sous-agents</li>
+              <li>Mises à jour comprises, sans limite de durée</li>
+            </ul>
+          </section>
+
+          <section className="card mt-3 p-5">
+            <span className="surtitre">Récupérer l&apos;outil</span>
+            <p className="mt-2 text-sm text-muted">
+              Le dépôt est privé&nbsp;: l&apos;accès se donne par invitation GitHub. Elle part
+              automatiquement à l&apos;achat — si tu t&apos;es trompé d&apos;identifiant, renvoie-la.
+            </p>
+            <Reparation dejaInvite={null} />
+          </section>
+        </>
+      )}
+
+      {estAdmin(courriel) && (
+        <p className="mt-4 text-xs">
+          <Link href="/admin" className="text-ink underline underline-offset-4">
+            Espace d&apos;administration →
+          </Link>
+        </p>
+      )}
     </main>
   );
 }
 
-async function lireAchat(compte: string): Promise<{ paye: boolean; detail: string }> {
-  try {
-    const client = await clientDuCompte(compte);
-    if (!client) return { paye: false, detail: "Ce compte n'a encore rien acheté." };
-
-    const etat = await etatDuPaiement(client);
-    if (etat.paye) {
-      const quand = etat.le ? new Date(etat.le).toLocaleDateString("fr-FR") : "—";
-      return { paye: true, detail: `Acheté le ${quand}. Perpétuel, mises à jour comprises.` };
-    }
-    return {
-      paye: false,
-      detail: etat.raison === "rembourse" ? "Cet achat a été remboursé." : "Aucun paiement trouvé.",
-    };
-  } catch {
-    return { paye: false, detail: "Le service de paiement ne répond pas. Réessaie dans un moment." };
-  }
+function Invite() {
+  return (
+    <main className="mx-auto max-w-2xl">
+      <EnteteService />
+      <h1 className="font-display text-3xl">Mon compte</h1>
+      <p className="mt-3 text-sm text-muted">Connecte-toi pour retrouver ton achat.</p>
+    </main>
+  );
 }

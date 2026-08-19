@@ -28,6 +28,7 @@ export const config = {
     "/sign-in(.*)",
     "/sign-up(.*)",
     "/compte(.*)",
+    "/admin(.*)",
     // La page qui vend : elle porte l'en-tête de compte, donc elle a besoin
     // d'une session pour savoir quoi afficher. Absente d'ici, `auth()` lève et
     // la page rend une erreur 500 — c'est une liste blanche, pas un filtre.
