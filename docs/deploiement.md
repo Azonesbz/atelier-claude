@@ -101,3 +101,31 @@ rôle **local**, où aucune action d'écriture n'est authentifiée et où le
 loopback est la seule protection. Ici la frontière est le conteneur, et le
 proxy est seul à publier quoi que ce soit. Ne pas transposer la règle d'un rôle
 à l'autre.
+
+
+## En ligne depuis le 18 août 2026
+
+**https://orcha.vincentavz.com/produit** — Clerk en instance de **production**.
+
+Terrain réel du VPS, constaté et non supposé :
+
+| | |
+| --- | --- |
+| Réseau Docker | `admin_web` (pas `proxy`) |
+| Proxy | `bpm-admin-caddy`, Caddy 2-alpine, détient 80/443 |
+| Caddyfile | `/home/azones/bpm-connect/admin/Caddyfile` — sauvegardé en `.avant-orcha` |
+| Source | `/home/azones/orcha`, transférée par `tar` sur SSH (dépôt privé, pas de clé de déploiement) |
+| Instance Clerk | `ins_3I7uUzhwxlvMxUn1kIi4mB7AZ7j` |
+| Application OAuth prod | `R3jV1FdfllVvQvQ7`, client public PKCE |
+
+Vérifié en ligne : `/produit`, `/tarif`, `/merci`, `/compte` en **200** ; `/`,
+`/competences` en **404** — le rôle local est éteint par `ATELIER_PUBLIC=1`.
+Zéro erreur console, HSTS actif, et les trois autres sites du VPS intacts.
+
+### Ce qui manque encore pour vendre
+
+- **Aucun tarif Stripe** : la page n'affiche pas de prix et le paiement est
+  inopérant. `NEXT_PUBLIC_STRIPE_PRICE_ID` et `STRIPE_SECRET_KEY` sont absents
+  de `.env.production`.
+- **Le dépôt est privé** : un acheteur ne pourrait pas installer ce qu'il a
+  payé. Voir la section « distribution » de la landing, qui le signale.
