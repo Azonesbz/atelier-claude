@@ -6,7 +6,7 @@
  * souvent), et une interface qui plante sur un fichier manquant est inutile.
  */
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { estDossierSource, lire as lireSource, listerDossier } from "./source.ts";
 import { homedir } from "node:os";
 import { dirname, join, parse } from "node:path";
 import { parse as parseYaml } from "yaml";
@@ -50,7 +50,7 @@ export function racineProjet(): string | null {
 
 export function estDossier(chemin: string): boolean {
   try {
-    return statSync(chemin).isDirectory();
+    return estDossierSource(chemin);
   } catch {
     return false;
   }
@@ -67,7 +67,7 @@ export function contientUnFichier(chemin: string): boolean {
 
 export function lireTexte(chemin: string): string | null {
   try {
-    return readFileSync(chemin, "utf8");
+    return lireSource(chemin);
   } catch {
     return null;
   }
@@ -86,25 +86,15 @@ export function lireJson(chemin: string): Record<string, unknown> {
 }
 
 export function listerDossiers(chemin: string): string[] {
-  try {
-    return readdirSync(chemin, { withFileTypes: true })
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name)
-      .sort();
-  } catch {
-    return [];
-  }
+  return listerDossier(chemin)
+    .filter((nom) => estDossierSource(join(chemin, nom)))
+    .sort();
 }
 
 export function listerFichiers(chemin: string, extension: string): string[] {
-  try {
-    return readdirSync(chemin, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith(extension))
-      .map((e) => e.name)
-      .sort();
-  } catch {
-    return [];
-  }
+  return listerDossier(chemin)
+    .filter((nom) => nom.endsWith(extension) && !estDossierSource(join(chemin, nom)))
+    .sort();
 }
 
 function* listerRecursif(chemin: string, profondeur: number): Generator<string> {
