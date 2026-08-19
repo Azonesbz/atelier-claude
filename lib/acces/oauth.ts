@@ -41,7 +41,12 @@ export interface Fournisseur {
  */
 export function fournisseur(): Fournisseur | null {
   const emetteur = emetteurConfigure();
-  const clientId = process.env.ATELIER_ACCES_CLIENT;
+  // Deux sources : la variable d'exécution d'abord — un développeur doit
+  // pouvoir viser une autre application OAuth — puis celle inscrite au paquet.
+  // Inscrire cet identifiant est admissible : PKCE protège précisément un
+  // client public dont l'identifiant est distribué.
+  const clientId =
+    process.env.ATELIER_ACCES_CLIENT || process.env.NEXT_PUBLIC_ATELIER_ACCES_CLIENT;
   if (!emetteur || !clientId) return null;
 
   return {

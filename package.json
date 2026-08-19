@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port 4300",
     "test": "node --test 'lib/**/*.test.ts' 'lib/*.test.ts'",
-    "test:hook": "python3 -m unittest discover -p 'test_*.py' -v"
+    "test:hook": "python3 -m unittest discover -p 'test_*.py' -v",
+    "empaqueter": "next build && node scripts/empaqueter.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.7.6",

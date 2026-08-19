@@ -15,6 +15,7 @@ const CLES = [
   "ATELIER_ACCES_CLIENT",
   "ATELIER_ACCES_REDIRECTION",
   "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+  "NEXT_PUBLIC_ATELIER_ACCES_CLIENT",
 ] as const;
 
 /** base64 de « clerk.exemple.com$ ». */
@@ -155,4 +156,29 @@ test("le rafraîchissement ne porte pas de secret client non plus", () => {
   assert.equal(corps.get("refresh_token"), "le-jeton-de-rafraichissement");
   assert.equal(corps.get("client_id"), "client_abc");
   assert.equal(corps.get("client_secret"), null);
+});
+
+test("l'identifiant client peut être inscrit au paquet, car il est public", () => {
+  // Arrange — dans un paquet npm distribué, rien n'est lu à l'exécution : les
+  // valeurs doivent être inscrites à la compilation. C'est admissible ici
+  // parce que PKCE protège précisément un client dont l'identifiant circule.
+  poser({
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: CLE_PUBLIABLE,
+    NEXT_PUBLIC_ATELIER_ACCES_CLIENT: "client_du_paquet",
+  });
+
+  // Act & Assert
+  assert.equal(fournisseur()?.clientId, "client_du_paquet");
+});
+
+test("la variable d'exécution l'emporte sur celle du paquet", () => {
+  // Arrange — un développeur doit pouvoir viser une autre application OAuth
+  poser({
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: CLE_PUBLIABLE,
+    NEXT_PUBLIC_ATELIER_ACCES_CLIENT: "client_du_paquet",
+    ATELIER_ACCES_CLIENT: "client_local",
+  });
+
+  // Act & Assert
+  assert.equal(fournisseur()?.clientId, "client_local");
 });

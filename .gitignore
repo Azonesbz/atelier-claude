@@ -21,3 +21,6 @@ __pycache__/
 
 # Le fichier de production vit sur le VPS, jamais ici.
 .env.production
+
+# Le paquet npm assemblé — reconstruit à chaque publication.
+paquet/
