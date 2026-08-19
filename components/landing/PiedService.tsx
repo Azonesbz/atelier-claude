@@ -1,43 +1,33 @@
 import Link from "next/link";
-import { ARemplir, ChampARemplir } from "./ARemplir";
 
 /**
  * Le pied de page légal.
  *
- * Une page qui vend à des consommateurs en France doit porter des mentions
- * légales, des conditions de vente, une politique de confidentialité — un tiers
- * pose ici des cookies — et l'information sur le droit de rétractation. Rien de
- * tout cela ne s'invente : ces textes engagent, et une version plausible
- * rédigée d'office serait pire que leur absence, parce qu'elle passerait
- * inaperçue.
- *
- * D'où des emplacements signalés plutôt que remplis. La page ne peut pas être
- * publiée tant qu'ils le sont, et c'est exactement ce qu'ils doivent dire.
+ * Les trois textes existent désormais. Ce qui reste vide à l'intérieur — statut
+ * de l'éditeur, SIREN, médiateur — y est signalé page par page plutôt
+ * qu'ici : un lecteur qui cherche les mentions légales les ouvre, il ne lit pas
+ * un avertissement en pied de page.
  */
 export function PiedService() {
   return (
     <footer className="mt-24 border-t border-line pt-8">
-      <ARemplir quoi="obligations légales — bloque la mise en ligne">
-        <p>
-          Une page de vente à des particuliers en France ne peut pas être publiée sans ces
-          quatre textes. Ils engagent&nbsp;: ils doivent être écrits, pas devinés.
+      <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
+        <p className="max-w-md">
+          Orcha — l&apos;outil tourne sur ta machine et lit ton disque. Le service ne sait
+          qu&apos;une chose&nbsp;: si ton achat existe.
         </p>
-        <div className="mt-3 space-y-2">
-          <ChampARemplir intitule="Mentions légales — éditeur, statut, SIREN, hébergeur" />
-          <ChampARemplir intitule="Conditions générales de vente — objet, prix, licence, support" />
-          <ChampARemplir intitule="Politique de confidentialité — Clerk et Stripe traitent des données" />
-          <ChampARemplir intitule="Droit de rétractation — et sa renonciation pour un contenu numérique fourni immédiatement" />
-        </div>
-      </ARemplir>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
-        <p>
-          Orcha — l&apos;outil tourne sur ta machine. Le service ne sait qu&apos;une chose&nbsp;:
-          si ton achat existe.
-        </p>
-        <Link href="/produit" className="underline underline-offset-4">
-          Retour à la présentation
-        </Link>
+        <nav className="flex flex-wrap gap-4">
+          <Link href="/mentions" className="underline underline-offset-4 hover:text-ink">
+            Mentions légales
+          </Link>
+          <Link href="/cgv" className="underline underline-offset-4 hover:text-ink">
+            Conditions de vente
+          </Link>
+          <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
+            Confidentialité
+          </Link>
+        </nav>
       </div>
     </footer>
   );
