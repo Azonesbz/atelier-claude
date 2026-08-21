@@ -1,0 +1,35 @@
+# Le filet, à chaque poussée. Il ne livre rien : il dit seulement si le code
+# tient debout, et c'est la condition pour que la livraison ose être rapide.
+name: Vérifier
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # L'ordre compte : les tests d'abord, parce qu'ils échouent vite et
+      # disent pourquoi. Un build cassé après des tests verts se diagnostique ;
+      # l'inverse laisse chercher.
+      - name: Tests
+        run: npm test
+
+      - name: Contrôle de types
+        run: npx tsc --noEmit
+
+      - name: Construction
+        run: npm run build
+        env:
+          NEXT_PUBLIC_ATELIER_SERVICE: https://orcha.vincentavz.com

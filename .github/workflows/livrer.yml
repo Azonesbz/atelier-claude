@@ -1,0 +1,99 @@
+# La livraison, déclenchée par une étiquette de version.
+#
+# Une étiquette plutôt qu'une poussée sur `main` : livrer à chaque commit
+# obligerait à publier une version npm à chaque virgule corrigée, et npm
+# interdit de republier une version supprimée. `git tag v0.3.0 && git push
+# --tags` reste un geste délibéré, et c'est ce qu'on veut d'une publication
+# irréversible.
+name: Livrer
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
+
+  publier-npm:
+    needs: verifier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      # L'étiquette fait foi sur la version : `v0.3.0` produit 0.3.0. Sans ça,
+      # on publierait la version du package.json, qui peut avoir dérivé.
+      - name: Aligner la version sur l'étiquette
+        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+
+      - name: Assembler le paquet
+        run: npm run empaqueter
+        env:
+          NEXT_PUBLIC_ATELIER_SERVICE: https://orcha.vincentavz.com
+
+      # Garde-fou : Next trace tout le projet dans le build autonome. Un .env
+      # oublié partirait sur npm, publiquement et sans retour possible.
+      - name: Refuser de publier si un secret a suivi
+        run: |
+          if find paquet -name '.env*' | grep -q .; then
+            echo "Un fichier .env est dans le paquet — publication annulée."; exit 1
+          fi
+          if grep -rlE 'sk_live_[A-Za-z0-9]{20}|whsec_[A-Za-z0-9]{20}|github_pat_[A-Za-z0-9_]{30}' paquet; then
+            echo "Un secret est dans le paquet — publication annulée."; exit 1
+          fi
+          echo "Aucun secret dans le paquet."
+
+      - name: Publier
+        run: npm publish --access public --provenance
+        working-directory: paquet
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deployer-vps:
+    needs: verifier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ouvrir la connexion
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "${{ secrets.VPS_CLE }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.VPS_HOTE }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # Le code part par tar sur SSH : le VPS n'a pas de clé de déploiement, et
+      # lui en donner une pour un dépôt public n'apporterait rien.
+      - name: Transférer et reconstruire
+        run: |
+          tar czf - --exclude=node_modules --exclude=.next --exclude=.git \
+            --exclude='.env*' --exclude=paquet --exclude=__pycache__ . \
+          | ssh -o BatchMode=yes "${{ secrets.VPS_UTILISATEUR }}@${{ secrets.VPS_HOTE }}" \
+              'tar xzf - -C /home/azones/orcha \
+               && cd /home/azones/orcha \
+               && set -a && . ./.env.production && set +a \
+               && docker compose build && docker compose up -d'
+
+      # Le site doit répondre, pas seulement le conteneur démarrer.
+      - name: Vérifier que le site répond
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://orcha.vincentavz.com/produit || true)
+            [ "$code" = "200" ] && echo "En ligne." && exit 0
+            sleep 6
+          done
+          echo "Le site ne répond pas après le déploiement."; exit 1

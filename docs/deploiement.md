@@ -129,3 +129,59 @@ Zéro erreur console, HSTS actif, et les trois autres sites du VPS intacts.
   de `.env.production`.
 - **Le dépôt est privé** : un acheteur ne pourrait pas installer ce qu'il a
   payé. Voir la section « distribution » de la landing, qui le signale.
+
+
+## La livraison automatique
+
+Deux workflows GitHub Actions, dans `.github/workflows/` :
+
+**`verifier.yml`** tourne à chaque poussée sur `main` et à chaque pull request.
+Tests, contrôle de types, construction. Il ne livre rien — il dit seulement si
+le code tient debout, et c'est ce qui permet à la livraison d'oser être rapide.
+
+**`livrer.yml`** se déclenche sur une **étiquette de version** :
+
+```bash
+npm version patch          # ou minor, major — met à jour package.json
+git push --follow-tags
+```
+
+Il revérifie, puis mène deux tâches en parallèle : publier sur npm et déployer
+sur le VPS, avec un contrôle final que le site répond réellement en 200.
+
+### Pourquoi une étiquette et non chaque commit
+
+npm interdit de republier une version supprimée. Livrer à chaque commit
+obligerait à publier une version pour chaque virgule corrigée, et la moindre
+erreur resterait gravée. Une étiquette est un geste délibéré — ce qu'on veut
+d'une publication irréversible. Le déploiement du site, lui, pourrait suivre
+chaque commit ; il est gardé sur la même étiquette pour que le site et le
+paquet ne divergent jamais.
+
+### Le garde-fou avant publication
+
+Le workflow **refuse de publier** si un `.env` ou une clé se trouve dans le
+paquet. Ce n'est pas théorique : Next trace tout le projet dans le build
+autonome — `lib/lecture/reglages.ts` lit des chemins dynamiques — et un
+`.env.production` s'y est réellement retrouvé lors du premier assemblage.
+
+### Les quatre secrets à déclarer
+
+Sur `https://github.com/Azonesbz/orcha/settings/secrets/actions` :
+
+| Secret | Ce que c'est |
+| --- | --- |
+| `NPM_TOKEN` | Jeton npm de type Automation, qui publie sans code 2FA |
+| `VPS_HOTE` | `51.38.82.159` |
+| `VPS_UTILISATEUR` | `azones` |
+| `VPS_CLE` | Une clé SSH privée **dédiée au déploiement**, dont la publique est dans `authorized_keys` du VPS |
+
+Générer la clé dédiée plutôt que réutiliser une clé personnelle :
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/orcha_deploiement -N "" -C "github-actions"
+ssh-copy-id -i ~/.ssh/orcha_deploiement.pub azones@51.38.82.159
+```
+
+Le contenu de `~/.ssh/orcha_deploiement` va dans `VPS_CLE`. Une clé dédiée se
+révoque sans toucher à ton accès personnel.
