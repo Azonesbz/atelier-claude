@@ -67,6 +67,7 @@ writeFileSync(
   `${JSON.stringify(
     {
       name: "orcha-cli",
+      repository: { type: "git", url: "git+https://github.com/Azonesbz/orcha.git" },
       version: app.version,
       description: "Voir ce que ton dossier .claude déclare, et ce qui charge vraiment.",
       bin: { orcha: "bin/orcha.mjs" },

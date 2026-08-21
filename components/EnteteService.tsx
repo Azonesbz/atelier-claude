@@ -15,7 +15,7 @@ export function EnteteService() {
       </Link>
 
       <a
-        href="https://github.com/Azonesbz/atelier-claude"
+        href="https://github.com/Azonesbz/orcha"
         className="btn-ghost"
         rel="noreferrer noopener"
       >

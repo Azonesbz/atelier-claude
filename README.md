@@ -1,4 +1,4 @@
-# Atelier Claude
+# Orcha
 
 Voir et modifier un dossier `.claude` sur une page. Interface locale, aucun
 compte, aucune base, rien qui sorte de la machine.
@@ -50,54 +50,24 @@ Outfit porte le texte, Pacifico ne sert qu'au nom. Les rayons suivent la
 surface — 6 px un contrôle, 8 px un bouton, 16 px une carte — et les filets ont
 deux forces : 12 % pour le décor, 35 % pour les champs, seuil WCAG 1.4.11.
 
-## Lire est gratuit, écrire s'abonne
+## Installation
 
-L'application tourne sur **ta** machine et lit **ton** disque. Un serveur ne
-peut pas atteindre le `.claude` d'un client : il n'y a donc pas de compte, pas
-de session, pas de mot de passe. Une **clé de licence** ouvre l'écriture.
+```bash
+npx orcha-cli
+```
 
-**Un achat, une fois, mises à jour comprises à vie.** Pas d'abonnement : le
-produit n'a aucun coût récurrent — il tourne chez toi — et l'usage est
-épisodique. Une licence ne périme donc jamais : une fois vérifiée, elle vaut
-hors ligne, indéfiniment. Seul un remboursement la retire.
+Rien à cloner, rien à configurer. La commande télécharge l'outil, le démarre
+sur `127.0.0.1` et ouvre le navigateur. Node 20 ou plus suffit.
 
-| Ce que ça fait | Ce qu'il faut |
-| --- | --- |
-| Tout lire — inventaire, écarts, plans de workflow, veille | rien |
-| Modifier une compétence, une étape, un sous-agent | une licence |
+**Libre et gratuit, sous licence MIT.** Ni compte, ni paiement, ni télémétrie :
+l'outil lit ton disque et ne parle à personne.
 
-**La clé est un identifiant client Stripe signé.** Pas de base de données : la
-seule question posée est « ce client a-t-il payé, sans être remboursé ? », et
-Stripe en est déjà la source de vérité. En doubler une seconde, ce serait fabriquer deux
-vérités qui divergeront. La signature HMAC empêche de fabriquer une clé ou de
-transformer la sienne en celle d'un autre ; la comparaison est à temps
-constant.
+Pour travailler sur le code plutôt que l'utiliser :
 
-Le verrou vit **dans les actions serveur**, pas dans l'interface : un bouton
-grisé n'empêche personne d'appeler l'action. Sept écritures, sept vérifications.
-
-**Ce que le service sait de toi : rien, sauf si ton abonnement est actif.**
-Aucun contenu de ton dossier `.claude` ne lui parvient — il ne reçoit qu'une
-clé et répond oui ou non.
-
-**Deux limites, dites franchement.** Une application qui tourne sur la machine
-de son utilisateur peut être modifiée par lui : la licence est un rituel de
-paiement honnête, pas un verrou infranchissable.
-
-Et un achat unique à mises à jour perpétuelles finance zéro maintenance, alors
-que ce produit vit d'être exact sur une cible qui bouge — le format de
-`.claude`, le comportement du cache de plugins et les conventions de workflow
-ont tous changé pendant son écriture. Plus il y aura de licences, plus la
-maintenance coûtera sans jamais rien rapporter. C'est un choix assumé, pas un
-oubli.
-
-### Déployer le service
-
-Le même dépôt sert deux rôles. En local il lit le disque ; déployé, il ne sert
-que `/tarif`, `/merci` et `/api/licence`. Les clés à renseigner sont listées
-dans `.secrets/atelier-claude.env` — `STRIPE_SECRET_KEY`,
-`NEXT_PUBLIC_STRIPE_PRICE_ID`, `ATELIER_LICENCE_SECRET`,
-`NEXT_PUBLIC_ATELIER_SERVICE`.
+```bash
+git clone git@github.com:Azonesbz/orcha.git && cd orcha
+npm install && npm run dev
+```
 
 ## Les pages
 

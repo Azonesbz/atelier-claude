@@ -10,7 +10,7 @@
  * commande EST l'appel à l'action — la montrer vaut mieux que la promettre.
  */
 
-export const DEPOT_PUBLIC = "https://github.com/Azonesbz/atelier-claude";
+export const DEPOT_PUBLIC = "https://github.com/Azonesbz/orcha";
 
 /** La commande d'installation, affichée telle qu'on la tape. */
 export function AppelPrincipal({ pleineLargeur = false }: { pleineLargeur?: boolean }) {

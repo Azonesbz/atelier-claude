@@ -92,7 +92,7 @@ export function MiseEnRoute() {
           <p className="mt-2 max-w-prose text-sm text-muted">
             Le code est ouvert, sous licence MIT —{" "}
             <a
-              href="https://github.com/Azonesbz/atelier-claude"
+              href="https://github.com/Azonesbz/orcha"
               className="text-ink underline underline-offset-4"
               rel="noreferrer noopener"
             >

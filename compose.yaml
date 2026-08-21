@@ -9,13 +9,9 @@ services:
     build:
       context: .
       args:
-        # Inscrites dans le paquet client à la compilation — changer l'une
-        # d'elles impose de reconstruire, pas seulement de redémarrer.
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:?clé publiable Clerk de PRODUCTION requise}
-        NEXT_PUBLIC_ATELIER_SERVICE: ${NEXT_PUBLIC_ATELIER_SERVICE:?adresse publique du service requise}
-        # Facultatif : sans tarif, la page s'affiche sans prix plutôt que d'en
-        # inventer un. C'est un manque signalé, pas une panne.
-        NEXT_PUBLIC_STRIPE_PRICE_ID: ${NEXT_PUBLIC_STRIPE_PRICE_ID:-}
+        # Inscrite dans le paquet client à la compilation — la changer impose de
+        # reconstruire, pas seulement de redémarrer.
+        NEXT_PUBLIC_ATELIER_SERVICE: ${NEXT_PUBLIC_ATELIER_SERVICE:?adresse publique du site requise}
     image: orcha:latest
     restart: unless-stopped
     env_file: .env.production
