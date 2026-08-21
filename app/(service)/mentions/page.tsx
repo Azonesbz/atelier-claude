@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ARemplir, ChampARemplir } from "@/components/landing/ARemplir";
 import { PageLegale, Section } from "@/components/landing/PageLegale";
 import { estPublic } from "@/lib/acces/role";
+
+/* Le garde-fou doit s'évaluer à l'EXÉCUTION : prérendue, cette page
+   figerait le rôle constaté à la construction, et apparaîtrait dans le paquet
+   npm distribué aux utilisateurs. */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Mentions légales — Orcha" };
 
@@ -10,10 +14,12 @@ export const metadata: Metadata = { title: "Mentions légales — Orcha" };
  * Les mentions légales, exigées par la LCEN pour tout site accessible au
  * public — et davantage encore dès lors qu'on y vend.
  *
- * L'identité de l'éditeur ne se devine pas : statut, numéro d'immatriculation
- * et adresse professionnelle sont des faits juridiques. Ils restent en
- * emplacement signalé plutôt qu'inventés, parce qu'une mention fausse expose
- * plus qu'une mention absente.
+ * Le site ne vend plus rien, ce qui change la nature de l'obligation : un
+ * éditeur non professionnel peut s'en tenir aux coordonnées de son hébergeur,
+ * dès lors qu'il lui a communiqué son identité (LCEN, article 6 III 2). Le
+ * SIREN et l'adresse professionnelle qu'exigeait la vente n'ont plus d'objet.
+ *
+ * Ce n'est pas un avis juridique : à faire relire si un doute subsiste.
  */
 export default function Mentions() {
   // Ces pages sont celles du site public : elles n'ont rien à faire chez
@@ -21,7 +27,7 @@ export default function Mentions() {
   if (!estPublic()) notFound();
 
   return (
-    <PageLegale titre="Mentions légales" miseAJour="19 août 2026">
+    <PageLegale titre="Mentions légales" miseAJour="21 août 2026">
       <Section titre="Éditeur du site">
         <p>
           Le site <strong className="text-ink">orcha.vincentavz.com</strong> et le logiciel Orcha
@@ -33,18 +39,16 @@ export default function Mentions() {
             vincent.avez22@gmail.com
           </a>
         </p>
-        <ARemplir quoi="identité juridique de l'éditeur">
-          <p>
-            Le site ne vend rien&nbsp;: le logiciel est libre et gratuit. L&apos;obligation reste
-            allégée, mais un éditeur doit pouvoir être identifié.
-          </p>
-          <div className="mt-2 space-y-2">
-            <ChampARemplir intitule="Statut — entrepreneur individuel, micro-entreprise, SASU…" />
-            <ChampARemplir intitule="Numéro SIREN ou SIRET" />
-            <ChampARemplir intitule="Adresse professionnelle" />
-            <ChampARemplir intitule="Directeur de la publication, si différent de l'éditeur" />
-          </div>
-        </ARemplir>
+        <p>
+          Ce site est édité à titre <strong className="text-ink">non professionnel</strong>&nbsp;:
+          il ne vend rien, le logiciel qu&apos;il présente est libre et gratuit, et son code est
+          public. L&apos;éditeur se prévaut à ce titre de l&apos;anonymat prévu par
+          l&apos;article&nbsp;6&nbsp;III&nbsp;2 de la LCEN, ayant communiqué son identité à
+          l&apos;hébergeur, qui la tient à la disposition de l&apos;autorité judiciaire.
+        </p>
+        <p>
+          Directeur de la publication&nbsp;: Vincent Avez.
+        </p>
       </Section>
 
       <Section titre="Hébergement">

@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { PageLegale, Section } from "@/components/landing/PageLegale";
 import { estPublic } from "@/lib/acces/role";
 
+/* Le garde-fou doit s'évaluer à l'EXÉCUTION : prérendue, cette page
+   figerait le rôle constaté à la construction, et apparaîtrait dans le paquet
+   npm distribué aux utilisateurs. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Confidentialité — Orcha" };
 
 /**
@@ -18,7 +23,7 @@ export default function Confidentialite() {
   if (!estPublic()) notFound();
 
   return (
-    <PageLegale titre="Confidentialité" miseAJour="19 août 2026">
+    <PageLegale titre="Confidentialité" miseAJour="21 août 2026">
       <Section titre="Ce qui ne quitte jamais ta machine">
         <p>
           Orcha s&apos;exécute localement et lit ton dossier <code>.claude</code> sur ton disque.{" "}

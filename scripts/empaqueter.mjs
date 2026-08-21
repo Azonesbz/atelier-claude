@@ -2,14 +2,14 @@
 /**
  * Assemble le paquet npm publiable, à partir du build autonome.
  *
- * Ce qui part sur npm est **le rôle local uniquement**. Aucun secret n'y entre :
- * les seules valeurs inscrites au paquet sont publiques par construction — la
- * clé publiable Clerk part dans chaque page, et l'identifiant OAuth est celui
- * d'un client public, que PKCE protège précisément parce qu'il est distribué.
+ * Ce qui part sur npm est **le rôle local uniquement**. Il n'y a plus aucun
+ * secret à en écarter depuis que le produit est libre : ni compte, ni
+ * paiement, ni clé d'aucune sorte. `ATELIER_PUBLIC` n'y est pas posé, donc les
+ * pages du site public n'existent pas dans le paquet.
  *
- * CLERK_SECRET_KEY, STRIPE_SECRET_KEY et GITHUB_TOKEN restent au service. Sans
- * elles, `estService()` est faux : ni ClerkProvider, ni middleware, ni page de
- * vente dans le paquet.
+ * La purge reste, et elle est toujours indispensable : Next trace TOUT le
+ * projet dans le build autonome — `lib/lecture/reglages.ts` lit des chemins
+ * dynamiques et l'analyse statique renonce.
  */
 
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
