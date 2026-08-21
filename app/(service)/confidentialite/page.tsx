@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageLegale, Section } from "@/components/landing/PageLegale";
-import { estService } from "@/lib/acces/role";
+import { estPublic } from "@/lib/acces/role";
 
 export const metadata: Metadata = { title: "Confidentialité — Orcha" };
 
@@ -13,7 +13,9 @@ export const metadata: Metadata = { title: "Confidentialité — Orcha" };
  * machine, et le service ne sait qu'une chose — si un achat existe.
  */
 export default function Confidentialite() {
-  if (!estService()) notFound();
+  // Ces pages sont celles du site public : elles n'ont rien à faire chez
+  // quelqu'un qui a lancé l'outil sur sa propre machine.
+  if (!estPublic()) notFound();
 
   return (
     <PageLegale titre="Confidentialité" miseAJour="19 août 2026">
@@ -32,43 +34,28 @@ export default function Confidentialite() {
       </Section>
 
       <Section titre="Les données traitées ici">
-        <ul className="list-disc space-y-1 pl-5">
-          <li>
-            <strong className="text-ink">Compte</strong> — adresse e-mail et identifiant, gérés par
-            Clerk. Finalité&nbsp;: rattacher un achat à une personne.
-          </li>
-          <li>
-            <strong className="text-ink">Paiement</strong> — géré par Stripe, qui conserve
-            l&apos;historique de la transaction. Aucune donnée bancaire ne parvient à
-            l&apos;éditeur.
-          </li>
-          <li>
-            <strong className="text-ink">Identifiant GitHub</strong> — saisi au moment de
-            l&apos;achat. Finalité&nbsp;: livrer l&apos;accès au dépôt privé.
-          </li>
-        </ul>
         <p>
-          Base légale&nbsp;: l&apos;exécution du contrat de vente. Aucune donnée n&apos;est vendue,
-          louée, ni utilisée à des fins publicitaires. Il n&apos;y a ni mesure d&apos;audience, ni
-          traceur publicitaire sur ce site.
+          <strong className="text-ink">Aucune.</strong> Ce site présente un logiciel libre&nbsp;:
+          il n&apos;a ni compte, ni formulaire, ni paiement, ni mesure d&apos;audience, ni traceur
+          publicitaire. Rien n&apos;est collecté, donc rien n&apos;est conservé.
+        </p>
+        <p>
+          Le logiciel, lui, s&apos;exécute chez toi et ne transmet rien à personne.
         </p>
       </Section>
 
-      <Section titre="Sous-traitants">
+      <Section titre="Hébergement">
         <p>
-          Clerk (authentification), Stripe (paiement), GitHub (livraison) et OVH (hébergement).
-          Chacun applique sa propre politique, consultable sur son site.
+          Le site est servi par un serveur privé virtuel loué chez OVH SAS. Comme tout serveur
+          web, il enregistre les requêtes reçues — dont l&apos;adresse IP — dans ses journaux
+          techniques, le temps nécessaire à son exploitation et à sa sécurité.
         </p>
       </Section>
 
-      <Section titre="Durée et droits">
+      <Section titre="Tes droits">
         <p>
-          Les données liées à un achat sont conservées le temps de la relation commerciale et des
-          obligations comptables qui s&apos;y attachent.
-        </p>
-        <p>
-          Tu disposes d&apos;un droit d&apos;accès, de rectification, d&apos;effacement, de
-          portabilité et d&apos;opposition. Écris à{" "}
+          Il n&apos;y a pas de donnée à consulter, rectifier ou effacer. Pour toute question,
+          écris à{" "}
           <a href="mailto:vincent.avez22@gmail.com" className="text-ink underline underline-offset-4">
             vincent.avez22@gmail.com
           </a>
@@ -78,9 +65,7 @@ export default function Confidentialite() {
 
       <Section titre="Cookies">
         <p>
-          Seuls des cookies strictement nécessaires sont déposés, par Clerk, pour maintenir une
-          session ouverte. Ils ne servent ni au suivi, ni à la publicité, et ne demandent donc pas
-          de consentement préalable.
+          <strong className="text-ink">Aucun cookie n&apos;est déposé</strong> par ce site.
         </p>
       </Section>
     </PageLegale>

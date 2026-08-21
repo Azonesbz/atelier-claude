@@ -23,7 +23,7 @@ const CHARGE: Array<{ quoi: string; ou: string; combien: number }> = [
   { quoi: "instructions", ou: "./CLAUDE.md", combien: 1 },
 ];
 
-export function Heros({ montant }: { montant: string | null }) {
+export function Heros() {
   return (
     <section className="scroll-mt-4">
       <p className="surtitre">// CLAUDE CODE</p>
@@ -40,7 +40,7 @@ export function Heros({ montant }: { montant: string | null }) {
       </p>
 
       <div className="mt-7 flex flex-wrap items-center gap-3">
-        <AppelPrincipal montant={montant} />
+        <AppelPrincipal />
         <AppelSecondaire />
       </div>
       <Reducteurs />

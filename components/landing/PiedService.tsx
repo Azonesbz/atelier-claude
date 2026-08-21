@@ -21,9 +21,6 @@ export function PiedService() {
           <Link href="/mentions" className="underline underline-offset-4 hover:text-ink">
             Mentions légales
           </Link>
-          <Link href="/cgv" className="underline underline-offset-4 hover:text-ink">
-            Conditions de vente
-          </Link>
           <Link href="/confidentialite" className="underline underline-offset-4 hover:text-ink">
             Confidentialité
           </Link>

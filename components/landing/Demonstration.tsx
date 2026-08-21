@@ -16,7 +16,7 @@ import { EcranVeille } from "./EcranVeille";
  * D'où l'appel qui la referme, et nulle part avant. Un bouton posé plus haut
  * arrive sur un doute encore ouvert.
  */
-export function Demonstration({ montant }: { montant: string | null }) {
+export function Demonstration() {
   return (
     <section id="demonstration" className="mt-20 scroll-mt-4 sm:mt-28">
       <Bloc
@@ -72,7 +72,7 @@ export function Demonstration({ montant }: { montant: string | null }) {
       </Bloc>
 
       <div className="mt-12 border-t border-line pt-8">
-        <AppelPrincipal montant={montant} />
+        <AppelPrincipal />
       </div>
     </section>
   );

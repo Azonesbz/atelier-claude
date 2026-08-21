@@ -1,43 +1,26 @@
-import { SignInButton, Show, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
 /**
- * Les contrôles de compte, sur les pages du service uniquement.
+ * L'en-tête des pages publiques.
  *
- * Ils n'ont pas leur place dans la navigation de l'application locale : elle
- * tourne chez l'acheteur, sans `ClerkProvider` et sans compte à afficher. Les
- * y mettre ferait entrer Clerk là où le produit promet que rien ne sort de la
- * machine.
+ * Plus de contrôles de compte : le produit est libre, il n'y a personne à
+ * connecter. Ce qui reste est un lien vers le dépôt, qui est ce que cherche un
+ * lecteur arrivé ici.
  */
 export function EnteteService() {
   return (
     <header className="mb-8 flex items-center justify-between gap-4">
-      {/* Le nom ramène à la page qui présente le produit, pas à la caisse :
-          depuis `/merci` ou `/compte`, renvoyer vers `/tarif` proposait de
-          racheter ce qu'on venait d'acheter. */}
       <Link href="/produit" className="font-display text-xl">
         Orcha
       </Link>
 
-      <nav className="flex items-center gap-2">
-        <Show when="signed-out">
-          <SignInButton mode="modal">
-            <button type="button" className="btn-ghost">
-              Se connecter
-            </button>
-          </SignInButton>
-          {/* Pas de « Créer un compte » ici : bordé, il était plus saillant que
-              le CTA de la page et lui volait le clic. La création se fait dans
-              le tunnel d'achat, là où elle a une raison d'être. */}
-        </Show>
-
-        <Show when="signed-in">
-          <Link href="/compte" className="btn-ghost">
-            Mon compte
-          </Link>
-          <UserButton />
-        </Show>
-      </nav>
+      <a
+        href="https://github.com/Azonesbz/atelier-claude"
+        className="btn-ghost"
+        rel="noreferrer noopener"
+      >
+        Le code
+      </a>
     </header>
   );
 }

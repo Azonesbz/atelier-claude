@@ -10,10 +10,7 @@ import { Heros } from "@/components/landing/Heros";
 import { MiseEnRoute } from "@/components/landing/MiseEnRoute";
 import { Objections } from "@/components/landing/Objections";
 import { PiedService } from "@/components/landing/PiedService";
-import { OffreTarif } from "@/components/landing/OffreTarif";
-import { Reassurance } from "@/components/landing/Reassurance";
-import { estService } from "@/lib/acces/role";
-import { lireMontantAffiche } from "@/lib/licence/tarif";
+import { estPublic } from "@/lib/acces/role";
 
 export const dynamic = "force-dynamic";
 
@@ -30,38 +27,28 @@ export const metadata: Metadata = {
  * et deux groupes de routes qui revendiquent le même chemin font échouer le
  * build — vérifié, pas supposé. D'où cette route dédiée.
  *
- * Elle **mène** au tunnel de paiement sans le refaire : tout finit sur
- * `/tarif`, qui porte l'offre et le bouton Stripe. Dupliquer le tunnel ici
- * aurait fabriqué deux vérités sur le prix, et c'est exactement ce que la
- * fiche du produit interdit.
- *
  * L'ordre des sections n'est pas un goût : il vient de l'analyse de dix pages
  * qui vendent contre dix qui ne vendent pas, dans cette niche précise. Chaque
  * section a un job, et une section sans job n'entre pas.
  */
-export default async function Produit() {
-  // Sur la machine d'un acheteur il n'y a pas de `ClerkProvider` : l'en-tête
-  // de compte lèverait. Cette page n'existe que sur le service.
-  if (!estService()) notFound();
+export default function Produit() {
+  // Ces pages sont celles du site public : elles n'ont rien à faire chez
+  // quelqu'un qui a lancé l'outil sur sa propre machine.
+  if (!estPublic()) notFound();
 
-  // Le montant vit dans le tarif Stripe, jamais dans le code. `null` tant
-  // qu'aucun tarif n'est créé — le bouton perd alors son prix, sans mentir.
-  const montant = await lireMontantAffiche();
 
   return (
     <main>
       <EnteteService />
 
-      <Heros montant={montant} />
+      <Heros />
       <Compatibilite />
-      <Reassurance />
-      <Demonstration montant={montant} />
+      <Demonstration />
       <Credibilite />
       <MiseEnRoute />
-      <OffreTarif montant={montant} />
       <Objections />
       <Auteur />
-      <AppelFinal montant={montant} />
+      <AppelFinal />
       <PiedService />
     </main>
   );

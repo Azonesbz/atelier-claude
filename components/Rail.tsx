@@ -18,7 +18,6 @@ const ENTREES = [
   { href: "/agents", libelle: "Agents" },
   { href: "/reglages", libelle: "Réglages" },
   { href: "/veille", libelle: "Veille" },
-  { href: "/licence", libelle: "Compte" },
 ] as const;
 
 function estActif(chemin: string, href: string): boolean {
@@ -36,7 +35,7 @@ export function Rail() {
         className="hidden w-56 shrink-0 flex-col gap-1 border-r border-line bg-surface/40 px-3 py-4 md:flex"
       >
         <Link href="/" className="mb-4 px-2 font-display text-xl">
-          Atelier Claude
+          Orcha
         </Link>
         {ENTREES.map((e) => (
           <Link

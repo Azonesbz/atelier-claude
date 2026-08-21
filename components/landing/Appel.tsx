@@ -1,54 +1,30 @@
-import Link from "next/link";
-
 /**
  * L'appel à l'action, en un seul endroit — donc en un seul libellé.
  *
  * Le panel concurrent est net sur ce point : les pages qui rament ont quatre à
  * neuf libellés qui se disputent le même écran, et le lecteur ne sait plus ce
- * qu'on attend de lui. Ici le libellé est calculé une fois et réutilisé aux
- * quatre points de décision. Le changer, c'est le changer partout.
+ * qu'on attend de lui.
  *
- * Le montant fait partie du libellé quand Stripe le donne : chez les quatre
- * vendeurs sans notoriété du panel, il y est sans exception. Sans tarif
- * configuré, le bouton le perd — voir `lib/licence/tarif.ts`.
+ * Il n'y a plus de prix à afficher : le produit est libre, sous licence MIT.
+ * Ce qu'on demande au lecteur n'est plus d'acheter mais d'installer, et la
+ * commande EST l'appel à l'action — la montrer vaut mieux que la promettre.
  */
 
-/**
- * La destination du chemin gratuit.
- *
- * Le projet est passé en open source le 19 août 2026, sous licence MIT. Le
- * chemin gratuit a donc enfin une adresse — et l'installation ne demande plus
- * d'accès à quoi que ce soit : `npx orcha-cli` suffit.
- */
 export const DEPOT_PUBLIC = "https://github.com/Azonesbz/atelier-claude";
 
-export function libelleAchat(montant: string | null): string {
-  return montant ? `Acheter la licence — ${montant}` : "Acheter la licence";
-}
-
-export function AppelPrincipal({
-  montant,
-  pleineLargeur = false,
-}: {
-  montant: string | null;
-  pleineLargeur?: boolean;
-}) {
+/** La commande d'installation, affichée telle qu'on la tape. */
+export function AppelPrincipal({ pleineLargeur = false }: { pleineLargeur?: boolean }) {
   return (
-    <Link href="/tarif" className={`btn-primary ${pleineLargeur ? "w-full" : ""}`}>
-      {libelleAchat(montant)}
-    </Link>
+    <div className={pleineLargeur ? "w-full" : "inline-block"}>
+      <pre className="overflow-x-auto rounded-lg border border-accent/40 bg-surface px-4 py-3 font-mono text-sm text-ink select-all">
+        npx orcha-cli
+      </pre>
+    </div>
   );
 }
 
-/**
- * Le chemin gratuit, volontairement subordonné.
- *
- * Il n'est pas là par générosité : le lien d'échappement rend l'achat
- * volontaire, donc crédible. Et il est plus fort ici que chez les concurrents
- * — leur gratuit montre une maquette, le nôtre montre au lecteur son propre
- * dossier `.claude`.
- */
-export function AppelSecondaire({ libelle = "Tout voir gratuitement, sur ta machine" }) {
+/** Le chemin secondaire : lire le code avant de le lancer. */
+export function AppelSecondaire({ libelle = "Lire le code sur GitHub" }) {
   return (
     <a href={DEPOT_PUBLIC} className="btn-ghost" rel="noreferrer noopener">
       {libelle} →
@@ -57,14 +33,14 @@ export function AppelSecondaire({ libelle = "Tout voir gratuitement, sur ta mach
 }
 
 /**
- * Les trois réducteurs de risque, au contact du bouton.
+ * Les trois réducteurs de risque, au contact de la commande.
  *
  * Position volontaire : le panel montre que le local-first ne vend rien quand
  * il traîne dans une grille de fonctionnalités — il désarme le doute au moment
- * de payer, et seulement là.
+ * de décider, et seulement là.
  */
 export function Reducteurs() {
-  const points = ["Achat unique, à vie", "Rien ne quitte ta machine", "La lecture est gratuite"];
+  const points = ["Libre et gratuit, licence MIT", "Rien ne quitte ta machine", "Node 20 suffit"];
 
   return (
     <ul className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">

@@ -35,9 +35,6 @@ export function PageLegale({
           <Link href="/mentions" className="underline underline-offset-4">
             Mentions légales
           </Link>
-          <Link href="/cgv" className="underline underline-offset-4">
-            Conditions de vente
-          </Link>
           <Link href="/confidentialite" className="underline underline-offset-4">
             Confidentialité
           </Link>

@@ -10,7 +10,7 @@ import { AppelPrincipal, AppelSecondaire, Reducteurs } from "./Appel";
  * du bouton, seul endroit où le local-first vend quelque chose.
  */
 
-export function AppelFinal({ montant }: { montant: string | null }) {
+export function AppelFinal() {
   return (
     <section className="card mt-20 border-line-strong p-6 sm:p-10">
       <h2 className="text-2xl sm:text-3xl">Tu sauras ce qui tourne vraiment.</h2>
@@ -19,7 +19,7 @@ export function AppelFinal({ montant }: { montant: string | null }) {
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <AppelPrincipal montant={montant} />
+        <AppelPrincipal />
         <AppelSecondaire />
       </div>
 

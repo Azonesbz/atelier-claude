@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ARemplir, ChampARemplir } from "@/components/landing/ARemplir";
 import { PageLegale, Section } from "@/components/landing/PageLegale";
-import { estService } from "@/lib/acces/role";
+import { estPublic } from "@/lib/acces/role";
 
 export const metadata: Metadata = { title: "Mentions légales — Orcha" };
 
@@ -16,7 +16,9 @@ export const metadata: Metadata = { title: "Mentions légales — Orcha" };
  * plus qu'une mention absente.
  */
 export default function Mentions() {
-  if (!estService()) notFound();
+  // Ces pages sont celles du site public : elles n'ont rien à faire chez
+  // quelqu'un qui a lancé l'outil sur sa propre machine.
+  if (!estPublic()) notFound();
 
   return (
     <PageLegale titre="Mentions légales" miseAJour="19 août 2026">
@@ -33,14 +35,13 @@ export default function Mentions() {
         </p>
         <ARemplir quoi="identité juridique de l'éditeur">
           <p>
-            Ces informations sont exigées par la loi dès lors qu&apos;un site vend à des
-            particuliers. Elles ne peuvent pas être devinées.
+            Le site ne vend rien&nbsp;: le logiciel est libre et gratuit. L&apos;obligation reste
+            allégée, mais un éditeur doit pouvoir être identifié.
           </p>
           <div className="mt-2 space-y-2">
             <ChampARemplir intitule="Statut — entrepreneur individuel, micro-entreprise, SASU…" />
             <ChampARemplir intitule="Numéro SIREN ou SIRET" />
             <ChampARemplir intitule="Adresse professionnelle" />
-            <ChampARemplir intitule="Numéro de TVA intracommunautaire, si assujetti" />
             <ChampARemplir intitule="Directeur de la publication, si différent de l'éditeur" />
           </div>
         </ARemplir>
@@ -54,18 +55,6 @@ export default function Mentions() {
             ovhcloud.com
           </a>
           .
-        </p>
-      </Section>
-
-      <Section titre="Prestataires techniques">
-        <p>
-          L&apos;authentification des comptes est assurée par <strong className="text-ink">Clerk</strong>,
-          et les paiements par <strong className="text-ink">Stripe</strong>. Aucune donnée bancaire
-          ne transite par ce site&nbsp;: le formulaire de paiement est hébergé par Stripe.
-        </p>
-        <p>
-          La livraison du logiciel passe par une invitation au dépôt privé hébergé chez{" "}
-          <strong className="text-ink">GitHub</strong>.
         </p>
       </Section>
 
