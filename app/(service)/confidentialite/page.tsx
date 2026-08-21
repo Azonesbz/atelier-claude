@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Confidentialité — Orcha" };
  *
  * Elle décrit ce que le produit fait réellement, et c'est un argument autant
  * qu'une obligation : le dossier `.claude` de l'acheteur ne quitte jamais sa
- * machine, et le service ne sait qu'une chose — si un achat existe.
+ * machine, et ce site ne collecte rien du tout.
  */
 export default function Confidentialite() {
   // Ces pages sont celles du site public : elles n'ont rien à faire chez

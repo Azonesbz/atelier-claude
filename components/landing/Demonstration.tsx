@@ -11,7 +11,7 @@ import { EcranVeille } from "./EcranVeille";
  * le « est-ce que ça marche vraiment » est de montrer le travail fait, une
  * tâche à la fois, dans l'interface elle-même. C'est le seul endroit de la page
  * où l'on demande de la lecture longue, et c'est justifié : c'est là que se
- * décide l'achat.
+ * décide l'installation.
  *
  * D'où l'appel qui la referme, et nulle part avant. Un bouton posé plus haut
  * arrive sur un doute encore ouvert.

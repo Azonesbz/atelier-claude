@@ -61,8 +61,8 @@ export default function Mentions() {
       <Section titre="Propriété intellectuelle">
         <p>
           Le code source d&apos;Orcha, sa documentation et le contenu de ce site sont la propriété
-          de leur auteur. L&apos;achat d&apos;une licence confère un droit d&apos;usage personnel,
-          il n&apos;emporte aucune cession de droits.
+          de leur auteur. Le code est publié sous licence MIT&nbsp;: chacun peut l&apos;utiliser, le modifier et le
+          redistribuer, à condition d&apos;en conserver la mention de licence.
         </p>
       </Section>
     </PageLegale>

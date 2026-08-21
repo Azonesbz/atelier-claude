@@ -35,16 +35,6 @@ export function Objections() {
       <h2 className="surtitre">// OBJECTIONS</h2>
 
       <div className="mt-5 space-y-2">
-        {/* En premier parce que c'est la question qui arrête le clic : le bouton
-            d'achat demande un compte, et l'apprendre APRÈS avoir cliqué est la
-            friction la plus chère de la page. */}
-        <Objection question={<>&laquo;&#8239;Il faut un compte pour acheter&#8239;?&#8239;&raquo;</>}>
-          Oui, et c&apos;est le compte qui ouvre l&apos;écriture — il n&apos;y a rien à recopier
-          ensuite. Sans lui, l&apos;achat ne serait rattaché à personne et tu ne pourrais
-          jamais le faire valoir. L&apos;application, elle, se lit sans compte&nbsp;: la
-          connexion ne sert qu&apos;à prouver que l&apos;achat existe.
-        </Objection>
-
         <Objection
           question={
             <>
@@ -56,10 +46,10 @@ export function Objections() {
           regarde ni les plugins, ni les compétences, ni les agents.
         </Objection>
 
-        <Objection question="« Le dépôt est ouvert. Pourquoi payer ? »">
-          Parce que rien ne t&apos;y oblige, et c&apos;est assumé. Une application qui tourne chez
-          toi se modifie. La licence est un rituel de paiement honnête, pas un verrou. Tu peux tout
-          lire sans payer, et tout modifier à la main dans ton éditeur.
+        <Objection question={<>&laquo;&#8239;C&apos;est gratuit. Où est le piège&#8239;?&#8239;&raquo;</>}>
+          Il n&apos;y en a pas. Le code est publié sous licence MIT, l&apos;outil tourne chez toi,
+          il n&apos;a ni compte, ni télémétrie, ni serveur à joindre. Il est né d&apos;une panne
+          vécue&nbsp;: le rendre payant aurait demandé plus de travail que de le donner.
         </Objection>
 
         <Objection question="« Qu'est-ce qui part sur le réseau ? »">
